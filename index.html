@@ -108,8 +108,20 @@ h1 em{font-family:"Newsreader",Georgia,serif; font-style:italic; font-weight:400
   font-family:"IBM Plex Mono",monospace; font-size:13.5px; font-weight:600;
   color:var(--ink); font-variant-numeric:tabular-nums;
 }
-.row2{display:flex; gap:10px}
-.row2>*{flex:1; min-width:0}
+/* rango de dos extremos sobre una sola pista compartida */
+.dual{position:relative; height:26px; margin-top:2px}
+.dual-track,.dual-fill{position:absolute; top:50%; height:3px; transform:translateY(-50%); border-radius:2px}
+.dual-track{left:0; right:0; background:var(--surface-3)}
+.dual-fill{background:var(--accent)}
+.dual input[type=range]{
+  position:absolute; left:0; top:0; width:100%; height:26px; margin:0;
+  background:transparent; pointer-events:none;
+}
+.dual input[type=range]::-webkit-slider-runnable-track{height:26px; background:transparent}
+.dual input[type=range]::-moz-range-track{height:26px; background:transparent}
+.dual input[type=range]::-webkit-slider-thumb{pointer-events:auto; margin-top:5px}
+.dual input[type=range]::-moz-range-thumb{pointer-events:auto}
+.dual input[type=range]:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:6px}
 
 input[type=range]{-webkit-appearance:none; appearance:none; width:100%; background:transparent; margin:5px 0; cursor:pointer}
 input[type=range]::-webkit-slider-runnable-track{height:3px; background:var(--surface-3); border-radius:2px}
@@ -329,7 +341,9 @@ h3{
 
       <div class="field">
         <div class="label"><span>Edad</span><span class="val" id="v-edad">25 – 40 años</span></div>
-        <div class="row2">
+        <div class="dual">
+          <div class="dual-track"></div>
+          <div class="dual-fill" id="edadFill"></div>
           <input type="range" id="edadMin" min="18" max="70" value="25" aria-label="Edad mínima">
           <input type="range" id="edadMax" min="18" max="70" value="40" aria-label="Edad máxima">
         </div>
@@ -740,6 +754,18 @@ function fmt(n){
 }
 function money(v){return "$"+v.toLocaleString("es-MX")}
 
+var edadFill=$("edadFill");
+function paintEdad(){
+  var lo=+el.edadMin.value, hi=+el.edadMax.value, mn=18, mx=70;
+  var a=(lo-mn)/(mx-mn)*100, b=(hi-mn)/(mx-mn)*100;
+  edadFill.style.left=a.toFixed(2)+"%";
+  edadFill.style.width=Math.max(0,b-a).toFixed(2)+"%";
+  // si los dos thumbs coinciden queda encima el que permite volver a abrir el rango:
+  // arriba de la mitad se toma el mínimo (se abre hacia la izquierda), abajo el máximo
+  var juntos = lo===hi, arriba = lo>(mn+mx)/2;
+  el.edadMin.style.zIndex = (juntos && arriba) ? 3 : 1;
+  el.edadMax.style.zIndex = (juntos && arriba) ? 1 : 2;
+}
 function readState(){
   var a1=+el.edadMin.value, a2=+el.edadMax.value;
   if(a1>a2){var tmp=a1;a1=a2;a2=tmp}
@@ -894,6 +920,7 @@ function ecoStory(S){
 /* ================= render principal ================= */
 function update(){
   var st=readState();
+  paintEdad();
   $("v-edad").textContent=st.a1+" – "+st.a2+" años";
   $("v-est").textContent=(st.h/100).toFixed(2)+" m";
   $("v-ing").textContent=st.inc===0?"sin mínimo":money(st.inc);
@@ -1044,7 +1071,16 @@ $("reset").addEventListener("click",function(){ applyState(RESET_STATE) });
 /* ================= eventos ================= */
 var pending=false;
 function queue(){ if(pending)return; pending=true; requestAnimationFrame(function(){pending=false; update()}) }
-["edadMin","edadMax","est","ing"].forEach(function(id){ el[id].addEventListener("input",queue) });
+/* los thumbs se empujan entre sí en vez de cruzarse */
+function clampEdad(moved){
+  var lo=+el.edadMin.value, hi=+el.edadMax.value;
+  if(moved==="min" && lo>hi) el.edadMax.value=lo;
+  if(moved==="max" && hi<lo) el.edadMin.value=hi;
+  paintEdad();
+}
+el.edadMin.addEventListener("input",function(){ clampEdad("min"); queue() });
+el.edadMax.addEventListener("input",function(){ clampEdad("max"); queue() });
+["est","ing"].forEach(function(id){ el[id].addEventListener("input",queue) });
 ["edo","edu","trab","looks"].forEach(function(id){ el[id].addEventListener("change",update) });
 ["auto","casa","solo","libre"].forEach(function(id){ el[id].addEventListener("change",update) });
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(){ setTimeout(update,60) });
