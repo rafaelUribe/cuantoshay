@@ -91,9 +91,10 @@ h1 em{font-family:"Newsreader",Georgia,serif; font-style:italic; font-weight:400
 .layout>.panel{grid-column:1; grid-row:1 / span 2; position:sticky; top:20px}
 .layout>main{grid-column:2; grid-row:2; margin-top:30px}
 @media (max-width:900px){
-  .layout{display:flex; flex-direction:column; gap:22px; padding-top:22px}
+  .layout{display:flex; flex-direction:column; gap:14px; padding-top:14px}
   .layout>.result{order:1} .layout>.panel{order:2; position:static} .layout>main{order:3; margin-top:0}
 }
+
 
 /* ---------- panel de filtros ---------- */
 .panel{
@@ -151,6 +152,10 @@ h1 em{font-family:"Newsreader",Georgia,serif; font-style:italic; font-weight:400
   color:var(--accent); text-align:center;
 }
 .all-toggle:focus-visible{outline:2px solid var(--accent); outline-offset:-2px}
+/* el acceso al análisis completo sólo tiene sentido en el celular,
+   donde está escondido; en escritorio ya está todo a la vista */
+.ver-mas{display:none}
+@media (max-width:900px){ .ver-mas{display:block} }
 
 /* quién busca a quién */
 .whowho{display:grid; grid-template-columns:1fr 1fr; gap:7px}
@@ -459,6 +464,48 @@ h3{
 .notes li{margin-bottom:6px}
 .src{font-family:"IBM Plex Mono",monospace; font-size:12px; line-height:1.7; color:var(--ink-3); list-style:none; padding:0; margin:0}
 .src li{margin-bottom:5px; padding-left:16px; text-indent:-16px}
+
+/* ---------- móvil: una sola pantalla, el número y el paso que estás decidiendo ----------
+   Modo "filtrando": el número queda fijo arriba y abajo sólo el paso actual.
+   Modo "revelado": aparece el análisis completo, y el número se va a la barra fija. */
+@media (max-width:900px){
+  .layout>.result{
+    position:sticky; top:0; z-index:40;
+    margin:0 -16px; border-radius:0; border-left:0; border-right:0;
+    box-shadow:0 8px 20px -12px rgba(0,0,0,.4);
+  }
+  .result-top{grid-template-columns:1fr; gap:9px; padding:13px 18px 12px}
+  .kicker{font-size:10px; letter-spacing:.1em; margin-bottom:1px}
+  .big{font-size:2.9rem; line-height:.95}
+  .big-sub{font-size:12.5px; margin-top:3px; max-width:none}
+  /* probabilidad y porcentaje en una tira, no apilados */
+  .result-top>div:last-child{display:flex; gap:20px; border-top:1px solid var(--line); padding-top:9px}
+  .odds{border-left:0; padding:0; text-align:left}
+  .odds+.odds{margin-top:0}
+  .odds-num{font-size:1.02rem}
+  .odds-lbl{font-size:9px; margin-top:1px; letter-spacing:.09em}
+  .verdict{margin:0 18px 13px; padding:10px 13px}
+  .verdict-line{font-size:1.02rem}
+  .verdict-cmp{font-size:.92rem; margin-top:3px}
+
+  /* fuera de la vista todo lo que no estás decidiendo ahora */
+  .dots{display:none}
+  .share{display:none}
+  .stickybar{display:none}
+  .dek{display:none}
+  .eyebrow{display:none}
+  header{padding:14px 0 10px}
+  h1{font-size:1.8rem; margin-bottom:8px}
+  .badge{margin-top:0; font-size:10.5px; line-height:1.35; padding:6px 10px}
+  body:not(.revealed) .layout>main{display:none}
+
+  /* al revelar el análisis, el número deja de estar fijo y vuelve la barra */
+  body.revealed .layout>.result{position:static; margin:0; border-radius:var(--r); border:1px solid var(--line)}
+  body.revealed .dots{display:block}
+  body.revealed .share{display:flex}
+  body.revealed .stickybar{display:block}
+}
+
 </style>
 
 
@@ -586,6 +633,7 @@ h3{
       <button class="nav-btn next" id="stepNext" type="button">Siguiente</button>
     </div>
     <button class="all-toggle" id="allToggle" type="button">Ver todos los filtros de una vez</button>
+    <button class="all-toggle ver-mas" id="verMas" type="button">Ver el análisis completo</button>
   </aside>
 
   <div class="result">
@@ -1059,14 +1107,51 @@ function goStep(n){
   $("stepNext").textContent = (step===NSTEPS) ? "Ver mi resultado" : "Siguiente";
 }
 $("stepPrev").addEventListener("click",function(){ goStep(step-1) });
+/* el análisis completo sólo aparece cuando lo pides: en el celular
+   mientras filtras únicamente se ve el número y el paso en turno */
+var revelacionManual=false;
+function revelar(){
+  revelacionManual=true;
+  if(document.body.classList.contains("revealed")) return;
+  document.body.classList.add("revealed");
+  $("verMas").textContent="Ocultar el análisis";
+}
+function alternarAnalisis(){
+  if(document.body.classList.contains("revealed")){
+    revelacionManual=false;
+    document.body.classList.remove("revealed");
+    $("verMas").textContent="Ver el análisis completo";
+    $("panelEl").scrollIntoView({behavior: reduce?"auto":"smooth", block:"start"});
+  } else {
+    revelar();
+    setTimeout(function(){
+      var m=document.querySelector("main");
+      if(m&&m.scrollIntoView) m.scrollIntoView({behavior: reduce?"auto":"smooth", block:"start"});
+    },40);
+  }
+}
+$("verMas").addEventListener("click",alternarAnalisis);
+
 $("stepNext").addEventListener("click",function(){
   if(step<NSTEPS){ goStep(step+1); return }
-  // ya terminaste: te llevo al número, que en el celular quedó arriba
-  var card=document.querySelector(".result");
-  if(card && card.scrollIntoView){
-    card.scrollIntoView({behavior: reduce?"auto":"smooth", block:"start"});
-  }
+  // terminaste los pasos: aquí sí se abre todo
+  revelar();
+  setTimeout(function(){
+    var m=document.querySelector("main");
+    if(m&&m.scrollIntoView) m.scrollIntoView({behavior: reduce?"auto":"smooth", block:"start"});
+  },40);
 });
+/* en escritorio no hay nada que esconder; al volver al celular se
+   vuelve a ocultar, salvo que lo hayas abierto tú a propósito */
+function syncRevealed(){
+  var escritorio=window.matchMedia("(min-width:901px)").matches;
+  if(escritorio) document.body.classList.add("revealed");
+  else if(!revelacionManual){
+    document.body.classList.remove("revealed");
+    $("verMas").textContent="Ver el análisis completo";
+  }
+}
+window.addEventListener("resize",syncRevealed);
 $("allToggle").addEventListener("click",function(){
   showAll=!showAll;
   $("panelEl").classList.toggle("showall",showAll);
@@ -1792,7 +1877,7 @@ if("IntersectionObserver" in window){
    si no, verías tus propios filtros en vez de los de quien te la mandó. */
 setTimeout(function(){
   if(!applyHash()) loadPrefs();
-  syncGenderLabels(); goStep(1);
+  syncGenderLabels(); goStep(1); syncRevealed();
   build(); update();
 },40);
 window.addEventListener("hashchange",function(){ if(applyHash()) update() });
