@@ -1717,13 +1717,26 @@ function shareImage(){
     try{ cv=buildInfographic() }catch(e){ toast("No se pudo generar la imagen"); return }
     cv.toBlob(function(blob){
       if(!blob){ toast("No se pudo generar la imagen"); return }
-      function descargar(){
+      function descargarNativo(){
         var url=URL.createObjectURL(blob);
         var a=document.createElement("a");
         a.href=url; a.download="cuantoshay.png";
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
         setTimeout(function(){ URL.revokeObjectURL(url) },4000);
         toast("¡Imagen lista!");
+      }
+      /* dentro del visor de Artifacts la descarga directa no existe:
+         ahí el guardado pasa por la capacidad del anfitrión. */
+      function descargar(){
+        if(window.claude && typeof window.claude.use==="function"){
+          window.claude.use("downloads").then(function(d){
+            if(!d){ descargarNativo(); return }
+            d.save({filename:"cuantoshay.png", data:blob}).then(
+              function(){ toast("¡Imagen guardada!") },
+              function(err){ if(!(err&&err.code==="declined")) toast("No se pudo guardar") }
+            );
+          },descargarNativo);
+        } else descargarNativo();
       }
       var file=null;
       try{ file=new File([blob],"cuantoshay.png",{type:"image/png"}) }catch(e){}
