@@ -1054,10 +1054,19 @@ function goStep(n){
   $("stepTitle").textContent="Paso "+step+" de "+NSTEPS+" · "+STEP_TITLES[step-1];
   $("stepFill").style.width=(100*step/NSTEPS).toFixed(1)+"%";
   $("stepPrev").disabled=(step===1);
-  $("stepNext").disabled=(step===NSTEPS);
+  // en el último paso el botón cierra el flujo en vez de quedarse muerto
+  $("stepNext").disabled=false;
+  $("stepNext").textContent = (step===NSTEPS) ? "Ver mi resultado" : "Siguiente";
 }
 $("stepPrev").addEventListener("click",function(){ goStep(step-1) });
-$("stepNext").addEventListener("click",function(){ goStep(step+1) });
+$("stepNext").addEventListener("click",function(){
+  if(step<NSTEPS){ goStep(step+1); return }
+  // ya terminaste: te llevo al número, que en el celular quedó arriba
+  var card=document.querySelector(".result");
+  if(card && card.scrollIntoView){
+    card.scrollIntoView({behavior: reduce?"auto":"smooth", block:"start"});
+  }
+});
 $("allToggle").addEventListener("click",function(){
   showAll=!showAll;
   $("panelEl").classList.toggle("showall",showAll);
