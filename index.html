@@ -587,7 +587,9 @@ function rankBy(key,desc){
   });
   ord.forEach(function(k,pos){ STATES[k]["r_"+key]=pos+1 });
 }
-rankBy("pib",true); rankBy("ing",true); rankBy("esc",true); rankBy("auto",true); rankBy("inf",false); rankBy("men",true);
+rankBy("pib",true); rankBy("ing",true); rankBy("esc",true); rankBy("auto",true); rankBy("inf",false); rankBy("men",true); rankBy("alt",true);
+var ALT_MIN=Math.min.apply(null,STATES.map(function(x){return x.alt}));
+var ALT_MAX=Math.max.apply(null,STATES.map(function(x){return x.alt}));
 
 /* ================= parámetros nacionales ================= */
 var AGE_BUCKETS=[[18,20,2.25],[20,25,5.45],[25,30,5.35],[30,35,5.05],[35,40,4.80],[40,45,4.50],
@@ -649,6 +651,11 @@ function pOcupado(a){ if(a<25)return .64; if(a<55)return .93; if(a<65)return .81
 var P_FORMAL=[.28,.38,.52,.70], MED_ING=[6200,7600,9200,15500];
 function ageFactor(a){ if(a<25)return .74; if(a<30)return .89; if(a<40)return 1.05; if(a<50)return 1.12; if(a<60)return 1.04; return .90 }
 function heightBase(a){ if(a<25)return 169.0; if(a<35)return 168.0; if(a<45)return 166.6; if(a<55)return 165.6; return 164.2 }
+var NAT_HEIGHT=(function(){
+  var s=0;
+  for(var j=0;j<AGE_BUCKETS.length;j++){ var b=AGE_BUCKETS[j]; s+=heightBase((b[0]+b[1])/2)*(b[2]/ageTot) }
+  return s;
+})();
 
 /* ================= población sintética por entidad ================= */
 var TARGET=1200000, N=0;
@@ -845,12 +852,14 @@ function ecoCard(si){
       ecoCell("Informalidad laboral",(BAR.inf*100).toFixed(0)+"%",null,BAR.inf,"de los ocupados, sin seguridad social")+
       ecoCell("Escolaridad promedio",BAR.esc.toFixed(1)+" años",null,BAR.esc/12,"población de 15 años y más")+
       ecoCell("Viviendas con auto",(BAR.auto*100).toFixed(0)+"%",null,BAR.auto,"promedio del país")+
+      ecoCell("Estatura promedio",NAT_HEIGHT.toFixed(1)+" cm",null,(BAR.alt-ALT_MIN)/(ALT_MAX-ALT_MIN),"hombres adultos, promedio nacional")+
       '</div>'+
       '<div class="eco-foot">Elige un estado para ver qué tanto se aleja de esta media — y cómo eso mueve tu número.</div>';
     return;
   }
   var S=STATES[si];
   var pibMax=Math.max.apply(null,STATES.map(function(x){return x.pib}));
+  var sHeight=NAT_HEIGHT+(S.alt-BAR.alt);
   box.innerHTML =
     '<div class="eco-hd"><p class="eco-name">'+S.n+'</p>'+
     '<span class="eco-pop">'+fmt(S.men)+' hombres de 18 a 70 · '+(100*S.men/TOTAL).toFixed(1)+'% del país · '+S.r_men+'° más poblado</span></div>'+
@@ -860,6 +869,7 @@ function ecoCard(si){
     ecoCell("Informalidad laboral",(S.inf*100).toFixed(0)+"%",S.r_inf,S.inf,"nacional "+(BAR.inf*100).toFixed(0)+"%")+
     ecoCell("Escolaridad promedio",S.esc.toFixed(1)+" años",S.r_esc,S.esc/12,"nacional "+BAR.esc.toFixed(1)+" años")+
     ecoCell("Viviendas con auto",(S.auto*100).toFixed(0)+"%",S.r_auto,S.auto,"nacional "+(BAR.auto*100).toFixed(0)+"%")+
+    ecoCell("Estatura promedio",sHeight.toFixed(1)+" cm",S.r_alt,(S.alt-ALT_MIN)/(ALT_MAX-ALT_MIN),(sHeight>=NAT_HEIGHT?"+":"−")+Math.abs(sHeight-NAT_HEIGHT).toFixed(1)+" cm vs. el promedio nacional")+
     '</div>'+
     '<div class="eco-foot">'+ecoStory(S)+'</div>';
 }
