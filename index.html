@@ -1,0 +1,1048 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Calculadora demográfica: pon requisitos de pareja y estima cuántos hombres en México los cumplen, por estado, con datos calibrados al INEGI.">
+<title>Uno de cada cuántos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap">
+
+<style>
+:root{
+  --bg:#ECEDF1; --surface:#FFFFFF; --surface-2:#F5F6F9; --surface-3:#E4E6EC;
+  --ink:#12161F; --ink-2:#454E5E; --ink-3:#79828F;
+  --line:#D6DAE2; --line-strong:#B9BFCB;
+  --accent:#D8175E; --accent-soft:#FBE4EC; --accent-line:#F0A9C2;
+  --teal:#0E7C72; --teal-soft:#DCF0EE;
+  --amber:#8A5A00; --amber-soft:#FBF0DA;
+  --shadow:0 1px 2px rgba(18,22,31,.06), 0 8px 24px -12px rgba(18,22,31,.18);
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B0E15; --surface:#141924; --surface-2:#1A2030; --surface-3:#222A3B;
+    --ink:#EEF0F5; --ink-2:#AFB7C5; --ink-3:#7B8595;
+    --line:#252D3D; --line-strong:#3E4A63;
+    --accent:#FF4585; --accent-soft:#331020; --accent-line:#6B2340;
+    --teal:#3FC9BC; --teal-soft:#10312F;
+    --amber:#E0B341; --amber-soft:#2A2110;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B0E15; --surface:#141924; --surface-2:#1A2030; --surface-3:#222A3B;
+  --ink:#EEF0F5; --ink-2:#AFB7C5; --ink-3:#7B8595;
+  --line:#252D3D; --line-strong:#3E4A63;
+  --accent:#FF4585; --accent-soft:#331020; --accent-line:#6B2340;
+  --teal:#3FC9BC; --teal-soft:#10312F;
+  --amber:#E0B341; --amber-soft:#2A2110;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"Archivo","Helvetica Neue",Arial,sans-serif;
+  font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px; margin:0 auto; padding:0 20px 72px}
+
+header{padding:44px 0 26px; border-bottom:1px solid var(--line)}
+.eyebrow{
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:11.5px; font-weight:500;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--accent); margin:0 0 14px;
+}
+h1{
+  font-size:clamp(2.4rem,6.4vw,4.1rem); line-height:.96; letter-spacing:-.032em;
+  font-weight:800; margin:0 0 16px; text-wrap:balance; max-width:15ch;
+}
+h1 em{font-family:"Newsreader",Georgia,serif; font-style:italic; font-weight:400; letter-spacing:-.01em}
+.dek{
+  font-family:"Newsreader",Georgia,serif; font-size:1.18rem; line-height:1.5;
+  color:var(--ink-2); max-width:60ch; margin:0;
+}
+.badge{
+  display:inline-flex; gap:8px; align-items:center; margin-top:18px; padding:7px 12px;
+  background:var(--amber-soft); border:1px solid color-mix(in srgb, var(--amber) 30%, transparent);
+  border-radius:999px; font-size:12.5px; color:var(--amber); font-weight:500;
+}
+.badge b{font-weight:700}
+
+.grid{display:grid; grid-template-columns:340px minmax(0,1fr); gap:34px; padding-top:30px; align-items:start}
+@media (max-width:900px){ .grid{grid-template-columns:1fr; gap:24px} .panel{position:static !important} }
+
+/* ---------- panel de filtros ---------- */
+.panel{
+  position:sticky; top:20px; background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--r); box-shadow:var(--shadow); overflow:hidden;
+}
+.panel-hd{
+  display:flex; justify-content:space-between; align-items:baseline; gap:10px;
+  padding:14px 16px; border-bottom:1px solid var(--line); background:var(--surface-2);
+}
+.panel-hd h2{
+  margin:0; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  font-family:"IBM Plex Mono",monospace; font-weight:600; color:var(--ink-2);
+}
+.reset{
+  background:none; border:0; padding:0; cursor:pointer; color:var(--accent);
+  font:inherit; font-size:12.5px; font-weight:600; text-decoration:underline; text-underline-offset:3px;
+}
+.panel-body{padding:6px 16px 18px; max-height:calc(100vh - 120px); overflow-y:auto}
+@media (max-width:900px){ .panel-body{max-height:none} }
+
+.field{padding:15px 0; border-bottom:1px dashed var(--line)}
+.field:last-child{border-bottom:0}
+.field.scope{
+  margin:0 -16px; padding:15px 16px; background:var(--surface-2);
+  border-bottom:1px solid var(--line);
+}
+.label{display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-bottom:9px}
+.label span:first-child{
+  font-size:11.5px; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3);
+  font-family:"IBM Plex Mono",monospace; font-weight:500;
+}
+.val{
+  font-family:"IBM Plex Mono",monospace; font-size:13.5px; font-weight:600;
+  color:var(--ink); font-variant-numeric:tabular-nums;
+}
+.row2{display:flex; gap:10px}
+.row2>*{flex:1; min-width:0}
+
+input[type=range]{-webkit-appearance:none; appearance:none; width:100%; background:transparent; margin:5px 0; cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:3px; background:var(--surface-3); border-radius:2px}
+input[type=range]::-moz-range-track{height:3px; background:var(--surface-3); border-radius:2px}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:16px; height:16px; margin-top:-6.5px; border-radius:50%;
+  background:var(--accent); border:2px solid var(--surface); box-shadow:0 0 0 1px var(--accent-line);
+}
+input[type=range]::-moz-range-thumb{
+  width:14px; height:14px; border-radius:50%; background:var(--accent);
+  border:2px solid var(--surface); box-shadow:0 0 0 1px var(--accent-line);
+}
+input[type=range]:focus-visible{outline:2px solid var(--accent); outline-offset:4px; border-radius:4px}
+
+select{
+  width:100%; font:inherit; font-size:13.5px; padding:8px 10px; color:var(--ink);
+  background:var(--surface); border:1px solid var(--line-strong); border-radius:7px; cursor:pointer;
+}
+select:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
+.fine{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; line-height:1.5; color:var(--ink-3);
+  margin:8px 0 0;
+}
+
+.checks{display:flex; flex-direction:column; gap:2px}
+.chk{
+  display:flex; align-items:center; gap:10px; padding:7px 8px; margin:0 -8px; border-radius:7px;
+  cursor:pointer; font-size:13.8px; color:var(--ink-2); transition:background .12s;
+}
+.chk:hover{background:var(--surface-2)}
+.chk input{accent-color:var(--accent); width:15px; height:15px; margin:0; cursor:pointer}
+.chk input:checked+span{color:var(--ink); font-weight:500}
+
+.tones{display:grid; grid-template-columns:repeat(11,1fr); gap:3px}
+.tone{
+  aspect-ratio:1/1.5; border-radius:4px; border:1px solid rgba(0,0,0,.18); cursor:pointer;
+  padding:0; position:relative; transition:transform .12s;
+}
+.tone[aria-pressed="false"]{opacity:.22; transform:scale(.86)}
+.tone[aria-pressed="true"]::after{content:""; position:absolute; inset:-3px; border:1.5px solid var(--accent); border-radius:6px}
+.tone:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
+.tone-scale{
+  display:flex; justify-content:space-between; margin-top:7px;
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--ink-3);
+}
+
+/* ---------- resultado ---------- */
+.result{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); overflow:hidden}
+.result-top{padding:26px 26px 22px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:26px; align-items:end}
+@media (max-width:640px){ .result-top{grid-template-columns:1fr; gap:18px} }
+.kicker{
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--ink-3); margin:0 0 6px;
+}
+.big{
+  font-size:clamp(3.2rem,10vw,5.6rem); font-weight:800; letter-spacing:-.045em; line-height:.88;
+  color:var(--accent); font-variant-numeric:tabular-nums; margin:0;
+}
+.big.loading{font-size:1.4rem; color:var(--ink-3); letter-spacing:0; font-weight:500}
+.big-sub{margin:10px 0 0; font-size:15px; color:var(--ink-2); max-width:40ch}
+.big-sub b{color:var(--ink); font-weight:600}
+.odds{text-align:right; font-family:"IBM Plex Mono",monospace; border-left:1px solid var(--line); padding-left:26px}
+@media (max-width:640px){ .odds{text-align:left; border-left:0; border-top:1px solid var(--line); padding:16px 0 0} }
+.odds-num{font-size:1.55rem; font-weight:600; color:var(--ink); letter-spacing:-.02em; font-variant-numeric:tabular-nums}
+.odds-lbl{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); margin-top:4px}
+.odds+.odds{margin-top:14px}
+
+.dots{padding:4px 26px 22px}
+.dots canvas{width:100%; height:auto; display:block}
+.dots-cap{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink-3); margin-top:10px; display:flex; align-items:center; gap:7px; flex-wrap:wrap}
+.dot-key{width:8px; height:8px; border-radius:50%; background:var(--accent); display:inline-block}
+
+/* ---------- secciones ---------- */
+.section{margin-top:30px}
+.section-hd{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:12px; flex-wrap:wrap}
+h3{
+  margin:0; font-size:13px; letter-spacing:.13em; text-transform:uppercase;
+  font-family:"IBM Plex Mono",monospace; font-weight:600; color:var(--ink-2);
+}
+.section-note{font-family:"Newsreader",Georgia,serif; font-size:14.5px; color:var(--ink-3); font-style:italic}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); overflow:hidden}
+
+/* ---------- radiografía económica ---------- */
+.eco-hd{
+  padding:14px 18px; border-bottom:1px solid var(--line); background:var(--surface-2);
+  display:flex; justify-content:space-between; align-items:baseline; gap:14px; flex-wrap:wrap;
+}
+.eco-name{font-size:1.15rem; font-weight:700; letter-spacing:-.02em; margin:0}
+.eco-pop{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-3); font-variant-numeric:tabular-nums}
+.eco-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(184px,1fr))}
+.eco{padding:15px 18px; border-right:1px solid var(--line); border-bottom:1px solid var(--line)}
+.eco-lbl{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3)}
+.eco-v{font-size:1.32rem; font-weight:700; letter-spacing:-.02em; margin-top:5px; font-variant-numeric:tabular-nums}
+.eco-meta{display:flex; align-items:center; gap:8px; margin-top:7px; flex-wrap:wrap}
+.rank{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; font-weight:600; padding:2px 7px; border-radius:999px;
+  background:var(--surface-3); color:var(--ink-2);
+}
+.rank.good{background:var(--teal-soft); color:var(--teal)}
+.rank.bad{background:var(--accent-soft); color:var(--accent)}
+.eco-vs{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink-3)}
+.gauge{height:4px; background:var(--surface-3); border-radius:2px; margin-top:9px; position:relative; overflow:hidden}
+.gauge>i{position:absolute; top:0; bottom:0; background:var(--teal); border-radius:2px}
+.gauge>u{position:absolute; top:-2px; bottom:-2px; width:1.5px; background:var(--ink-3)}
+.eco-foot{
+  padding:11px 18px; font-family:"Newsreader",Georgia,serif; font-size:14px;
+  color:var(--ink-2); font-style:italic;
+}
+
+/* ---------- embudo ---------- */
+.frow{
+  display:grid; grid-template-columns:minmax(120px,1.35fr) minmax(90px,1fr) 108px 76px;
+  gap:14px; align-items:center; padding:11px 18px; border-bottom:1px solid var(--line); font-size:13.5px;
+}
+.frow:last-child{border-bottom:0}
+.frow.head{
+  background:var(--surface-2); font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); padding:9px 18px;
+}
+.frow.base .fname{font-weight:600}
+.fname{min-width:0}
+.fname small{display:block; color:var(--ink-3); font-size:11.5px; line-height:1.35; margin-top:1px}
+.bar{height:9px; background:var(--surface-3); border-radius:2px; overflow:hidden; position:relative}
+.bar>i{display:block; height:100%; min-width:2px; background:var(--teal); border-radius:2px; transition:width .35s cubic-bezier(.4,0,.2,1)}
+.frow.base .bar>i{background:var(--ink-3)}
+.frow.scope .bar>i{background:var(--ink-3)}
+.fnum{font-family:"IBM Plex Mono",monospace; text-align:right; font-variant-numeric:tabular-nums; font-size:13px; font-weight:500}
+.fcut{font-family:"IBM Plex Mono",monospace; text-align:right; font-variant-numeric:tabular-nums; font-size:12px; color:var(--accent); font-weight:500}
+@media (max-width:640px){
+  .frow{grid-template-columns:minmax(0,1fr) 92px 64px; gap:10px; padding:10px 14px}
+  .frow .bar{display:none}
+  .frow.head{padding:8px 14px}
+  .frow.head .fbarhd{display:none}
+}
+
+/* ---------- tabla de estados ---------- */
+.srow{
+  display:grid; grid-template-columns:26px minmax(0,1.5fr) 96px minmax(70px,1fr) 78px;
+  gap:12px; align-items:center; padding:9px 18px; border-bottom:1px solid var(--line); font-size:13.5px;
+  cursor:pointer; transition:background .12s;
+}
+.srow:last-child{border-bottom:0}
+.srow:hover{background:var(--surface-2)}
+.srow.head{
+  background:var(--surface-2); font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); padding:9px 18px; cursor:default;
+}
+.srow.head:hover{background:var(--surface-2)}
+.srow.on{background:var(--accent-soft)}
+.srow.on:hover{background:var(--accent-soft)}
+.spos{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3); font-variant-numeric:tabular-nums}
+.sname{font-weight:500; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.snum{font-family:"IBM Plex Mono",monospace; text-align:right; font-variant-numeric:tabular-nums; font-size:12.5px}
+.sidx{
+  font-family:"IBM Plex Mono",monospace; text-align:right; font-variant-numeric:tabular-nums;
+  font-size:12.5px; font-weight:600;
+}
+.sidx.up{color:var(--teal)} .sidx.down{color:var(--ink-3)}
+.sbar{height:7px; background:var(--surface-3); border-radius:2px; overflow:hidden}
+.sbar>i{display:block; height:100%; min-width:2px; background:var(--teal); border-radius:2px}
+.states-scroll{max-height:430px; overflow-y:auto}
+@media (max-width:640px){
+  .srow{grid-template-columns:22px minmax(0,1.3fr) 84px 66px; gap:9px; padding:9px 13px}
+  .srow .sbar{display:none}
+  .srow.head .sbarhd{display:none}
+}
+
+.presets{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px}
+.preset{
+  font:inherit; font-size:13px; font-weight:500; padding:8px 13px; cursor:pointer;
+  background:var(--surface); color:var(--ink-2); border:1px solid var(--line-strong);
+  border-radius:999px; transition:all .12s;
+}
+.preset:hover{border-color:var(--accent); color:var(--accent); background:var(--accent-soft)}
+.preset:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+.notes{
+  margin-top:34px; padding-top:26px; border-top:1px solid var(--line);
+  font-family:"Newsreader",Georgia,serif; font-size:15.5px; line-height:1.62; color:var(--ink-2); max-width:66ch;
+}
+.notes h4{
+  font-family:"Archivo",sans-serif; font-size:12px; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--ink); margin:22px 0 8px; font-weight:700;
+}
+.notes h4:first-child{margin-top:0}
+.notes p{margin:0 0 12px}
+.notes ul{margin:0 0 12px; padding-left:20px}
+.notes li{margin-bottom:6px}
+.src{font-family:"IBM Plex Mono",monospace; font-size:12px; line-height:1.7; color:var(--ink-3); list-style:none; padding:0; margin:0}
+.src li{margin-bottom:5px; padding-left:16px; text-indent:-16px}
+</style>
+
+
+</head>
+<body>
+<div class="wrap">
+<header>
+  <p class="eyebrow">Calculadora demográfica · México · 32 entidades</p>
+  <h1>Uno de cada <em>cuántos</em></h1>
+  <p class="dek">Pon los requisitos. La calculadora estima cuántos hombres de 18 a 70 años los cumplen todos al mismo tiempo — en el país o en el estado que elijas — y te dice en qué entidades el número sale mejor y por qué su economía lo explica.</p>
+  <span class="badge"><b>Ojo:</b> modelo estadístico calibrado con cifras públicas del INEGI. No es un producto del INEGI ni un censo de personas reales.</span>
+</header>
+
+<div class="grid">
+
+  <aside class="panel">
+    <div class="panel-hd">
+      <h2>Tus requisitos</h2>
+      <button class="reset" id="reset" type="button">Limpiar</button>
+    </div>
+    <div class="panel-body">
+
+      <div class="field scope">
+        <div class="label"><span>Dónde buscas</span></div>
+        <select id="edo"><option value="-1">Todo México</option></select>
+      </div>
+
+      <div class="field">
+        <div class="label"><span>Edad</span><span class="val" id="v-edad">25 – 40 años</span></div>
+        <div class="row2">
+          <input type="range" id="edadMin" min="18" max="70" value="25" aria-label="Edad mínima">
+          <input type="range" id="edadMax" min="18" max="70" value="40" aria-label="Edad máxima">
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="label"><span>Estatura mínima</span><span class="val" id="v-est">1.75 m</span></div>
+        <input type="range" id="est" min="150" max="200" step="1" value="175" aria-label="Estatura mínima en centímetros">
+      </div>
+
+      <div class="field">
+        <div class="label"><span>Ingreso mensual mínimo</span><span class="val" id="v-ing">$20,000</span></div>
+        <input type="range" id="ing" min="0" max="14" step="1" value="8" aria-label="Ingreso mensual mínimo">
+      </div>
+
+      <div class="field">
+        <div class="label"><span>Escolaridad mínima</span></div>
+        <select id="edu">
+          <option value="0">Cualquiera</option>
+          <option value="1">Secundaria terminada</option>
+          <option value="2">Preparatoria o técnico</option>
+          <option value="3" selected>Licenciatura o más</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <div class="label"><span>Situación laboral</span></div>
+        <select id="trab">
+          <option value="0">Cualquiera</option>
+          <option value="1" selected>Que trabaje</option>
+          <option value="2">Empleo formal, con prestaciones</option>
+          <option value="3">Profesionista con empleo formal</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <div class="label"><span>Patrimonio y vivienda</span></div>
+        <div class="checks">
+          <label class="chk"><input type="checkbox" id="auto" checked><span>Tiene auto propio</span></label>
+          <label class="chk"><input type="checkbox" id="casa"><span>Tiene vivienda propia</span></label>
+          <label class="chk"><input type="checkbox" id="solo" checked><span>Vive por su cuenta, no con sus papás</span></label>
+          <label class="chk"><input type="checkbox" id="libre" checked><span>Está sin pareja</span></label>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="label"><span>Tono de piel</span><span class="val" id="v-tono">11 / 11</span></div>
+        <div class="tones" id="tones"></div>
+        <div class="tone-scale"><span>más claro</span><span>más oscuro</span></div>
+      </div>
+
+      <div class="field">
+        <div class="label"><span>Atractivo físico mínimo</span></div>
+        <select id="looks">
+          <option value="0">Muy feo — no importa</option>
+          <option value="1">Medio feo o mejor</option>
+          <option value="2">Normal, o equis</option>
+          <option value="3">Agradable</option>
+          <option value="4" selected>Guapo — solo el top 20%</option>
+        </select>
+        <p class="fine">Rasgo simulado como una curva normal: el INEGI no mide esto, nadie lo mide. Sirve para ver el efecto, no como dato real.</p>
+      </div>
+
+    </div>
+  </aside>
+
+  <main>
+    <div class="result">
+      <div class="result-top">
+        <div>
+          <p class="kicker" id="kicker">Hombres que cumplen todo</p>
+          <p class="big loading" id="big">Generando 1.2 millones de perfiles…</p>
+          <p class="big-sub" id="bigsub">Un momento: la simulación se arma en tu navegador.</p>
+        </div>
+        <div>
+          <div class="odds"><div class="odds-num" id="odds">—</div><div class="odds-lbl">Probabilidad</div></div>
+          <div class="odds"><div class="odds-num" id="pct">—</div><div class="odds-lbl" id="pctlbl">del total</div></div>
+        </div>
+      </div>
+      <div class="dots">
+        <canvas id="cv" width="1000" height="440" role="img" aria-label="Malla de 10,000 puntos donde se resaltan los que cumplen los requisitos"></canvas>
+        <div class="dots-cap"><span class="dot-key"></span> <span id="dotcap">—</span></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-hd">
+        <h3>El otro lado del mercado</h3>
+        <span class="section-note">Cuántas mujeres compiten por esos mismos hombres.</span>
+      </div>
+      <div class="card" id="market"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-hd">
+        <h3>Radiografía económica</h3>
+        <span class="section-note">Lo que hay detrás del número: así se gana la vida ese estado.</span>
+      </div>
+      <div class="card" id="eco"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-hd">
+        <h3>Dónde sale mejor el número</h3>
+        <span class="section-note">Ordenado por qué tanto de sus propios hombres cumple. Da clic en un estado.</span>
+      </div>
+      <div class="card"><div class="states-scroll" id="states"></div></div>
+    </div>
+
+    <div class="section">
+      <div class="section-hd">
+        <h3>Qué te cuesta cada requisito</h3>
+        <span class="section-note">Los filtros se aplican en cascada, de arriba hacia abajo.</span>
+      </div>
+      <div class="card" id="funnel"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-hd"><h3>Perfiles para probar</h3></div>
+      <div class="presets" id="presets"></div>
+    </div>
+
+    <div class="notes">
+      <h4>Cómo se calcula</h4>
+      <p>Detrás hay una población sintética de 1.2 millones de hombres generada por simulación Monte Carlo, repartida entre las 32 entidades. Cada hombre simulado recibe edad, estatura, escolaridad, situación laboral, ingreso, tono de piel, auto, vivienda y arreglo residencial a partir de distribuciones ajustadas a cifras públicas del INEGI. Los estados chicos llevan una muestra mínima de 12,000 para que su número no dependa de un puñado de casos; cuando aun así quedan menos de 60 en pie, la app lo avisa.</p>
+      <p>Las variables <em>no</em> son independientes: hay un factor latente de nivel socioeconómico que empuja al mismo tiempo escolaridad, ingreso, patrimonio y —siguiendo lo que el propio INEGI ha documentado sobre movilidad social y color de piel— también el tono de piel. Por eso pedir licenciatura ya sube el ingreso esperado. El embudo muestra el costo <em>marginal</em>: lo que cada requisito quita <em>después</em> de los anteriores.</p>
+
+      <h4>De dónde sale la diferencia entre estados</h4>
+      <p>Cada entidad entra con nueve parámetros propios: su población masculina de 18 a 70, su grado promedio de escolaridad, su tasa de informalidad laboral, su nivel de ingreso laboral relativo, el porcentaje de viviendas con automóvil y con vivienda propia, y ajustes de estatura, tono de piel y soltería documentados como diferencias regionales. Los parámetros están <em>anclados</em>: el promedio nacional ponderado por población reproduce exactamente la calibración nacional, así que lo que cambia entre estados son las distancias relativas, no el nivel general.</p>
+      <p>El resultado es que el mismo filtro da mercados muy distintos. Un requisito de ingreso alto castiga mucho más a Chiapas u Oaxaca —donde ocho de cada diez ocupados están en la informalidad— que a Nuevo León o Coahuila, donde poco más de tres de cada diez lo están. Pedir auto propio se vuelve casi trivial en Sonora y muy caro en Guerrero. Y el PIB per cápita no siempre acompaña: Campeche tiene el más alto del país por la extracción de petróleo, pero eso casi no aparece en el bolsillo de sus trabajadores, y en la app se nota.</p>
+
+      <h4>Qué significa cada filtro</h4>
+      <ul>
+        <li><b>Sin pareja</b> — soltero, separado, divorciado o viudo. No implica que esté buscando.</li>
+        <li><b>Que trabaje</b> — población ocupada. <b>Formal</b> = con acceso a seguridad social por su trabajo; en el país cerca del 54% de los ocupados está en la informalidad, pero eso va del 36% al 80% según el estado.</li>
+        <li><b>Ingreso</b> — ingreso mensual por su trabajo, en pesos de 2025.</li>
+        <li><b>Vivienda propia</b> — a su nombre o del hogar que encabeza; no cuenta la casa de sus papás.</li>
+        <li><b>Tono de piel</b> — escala cromática de 11 tonos, el mismo tipo de instrumento que el INEGI usa en sus módulos de movilidad social y discriminación. Está aquí porque es un dato que el INEGI levanta y porque el resultado es justamente el punto: el filtro que la gente casi nunca dice en voz alta también tiene un número.</li>
+        <li><b>Atractivo físico</b> — a diferencia de todo lo demás, esto <em>no</em> es un dato del INEGI: nadie lo mide. Se modela como un rasgo al azar, con forma de campana, igual de repartido en todo el país y sin relación con el ingreso o la escolaridad de cada quien. Los cinco niveles del selector son, literalmente, los quintiles de esa campana: "guapo" es el 20% más alto, "agradable" el 40% más alto, y así.</li>
+      </ul>
+
+      <h4>Sobre el "top 20%" y el otro lado del mercado</h4>
+      <p>La idea de que las mujeres solo eligen al 20% más atractivo de los hombres viene de estudios de <em>likes</em> en apps de citas —gente deslizando en una pantalla en segundos, con una sola foto—, no de a quién termina eligiendo como pareja. El propio Censo lo contradice: entre los hombres de 40 a 49 años, la enorme mayoría vive en unión. Por eso el filtro de atractivo aquí es exactamente eso, un filtro: puedes ponerlo en "guapo" para ver qué pasaría si esa preferencia fuera absoluta, o quitarlo para ver el país tal cual es.</p>
+      <p>La sección "el otro lado del mercado" agrega el dato que casi nunca se pone junto al de "cuántos hombres cumplen": cuántas mujeres sin pareja hay compitiendo por ellos. Se calcula con población femenina estimada por entidad (≈1.06 mujeres por cada hombre de 18 a 70, proporción nacional) y una curva de soltería propia, más baja en la juventud y más alta después de los 55 por la viudez. No corrige por orientación sexual ni por la brecha de edad real entre parejas —muchas mujeres emparejan con hombres mayores que ellas—, así que trátalo como orden de magnitud, no como conteo exacto.</p>
+
+      <h4>Los límites de esto</h4>
+      <p>Es una estimación de orden de magnitud, no un padrón. Dentro de cada estado hay diferencias enormes entre la capital y el campo que el modelo no separa: San Pedro no es todo Nuevo León y Polanco no es toda la Ciudad de México. Tampoco modela lo que a nadie le cabe en una encuesta —si es buena persona, si te caería bien, si él también te elegiría a ti— que es donde se juega casi todo. Y una aclaración obvia pero necesaria: que un número salga chico no significa que pedir de más esté mal. Significa cuánta gente cumple.</p>
+
+      <h4>Fuentes de calibración</h4>
+      <ul class="src">
+        <li>Censo de Población y Vivienda 2020 — población por entidad, estructura por edad y sexo, situación conyugal, escolaridad, vivienda propia.</li>
+        <li>ENOE — ocupación, tasa de informalidad laboral e ingreso por entidad.</li>
+        <li>PIB por entidad federativa — desempeño económico estatal.</li>
+        <li>ENADID — situación conyugal y arreglos residenciales.</li>
+        <li>ENSANUT — estatura de la población adulta masculina y diferencias regionales.</li>
+        <li>ENIGH — ingreso de los hogares y disponibilidad de vehículo.</li>
+        <li>Módulo de Movilidad Social Intergeneracional y ENADIS — escala de tono de piel y su relación con escolaridad e ingreso.</li>
+      </ul>
+      <p style="font-size:14px; color:var(--ink-3); margin-top:14px">Las cifras estatales están redondeadas y corresponden a las series públicas más recientes de cada fuente; sirven para comparar entidades entre sí, no como dato oficial puntual.</p>
+    </div>
+  </main>
+</div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= utilidades ================= */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+var rnd=mulberry32(20250823), spare=null;
+function gauss(){
+  if(spare!==null){var s=spare;spare=null;return s}
+  var u,v,s2;
+  do{u=rnd()*2-1;v=rnd()*2-1;s2=u*u+v*v}while(s2>=1||s2===0);
+  var m=Math.sqrt(-2*Math.log(s2)/s2); spare=v*m; return u*m;
+}
+function ncdf(x){
+  var t=1/(1+0.2316419*Math.abs(x)), d=0.3989422804014327*Math.exp(-x*x/2);
+  var p=d*t*(0.319381530+t*(-0.356563782+t*(1.781477937+t*(-1.821255978+t*1.330274429))));
+  return x>0?1-p:p;
+}
+function pickCum(c,q){for(var i=0;i<c.length;i++){if(q<=c[i])return i}return c.length-1}
+function cumsum(a){var c=[],s=0;for(var i=0;i<a.length;i++){s+=a[i];c.push(s)}return c}
+function logistic(x){return 1/(1+Math.exp(-x))}
+function logit(p){return Math.log(p/(1-p))}
+
+/* ================= entidades federativas =================
+   pob  población total 2020, millones      esc  grado promedio de escolaridad
+   sh   proporción de hombres de 18 a 70    inf  tasa de informalidad laboral
+   ing  ingreso laboral relativo            auto % de viviendas con automóvil
+   casa % de viviendas propias              pib  PIB per cápita, miles de pesos
+   alt  ajuste de estatura, cm              ton  ajuste de tono de piel
+   sol  ajuste de soltería                                                     */
+var STATES=[
+ {n:"Aguascalientes",     pob:1.425, sh:.340, esc:10.2, inf:.44, ing:1.00, auto:.52, casa:.68, alt: 0.8, ton:-0.10, sol: .01, pib:215},
+ {n:"Baja California",    pob:3.769, sh:.350, esc:10.2, inf:.40, ing:1.25, auto:.55, casa:.62, alt: 1.8, ton:-0.35, sol: .02, pib:200},
+ {n:"Baja California Sur",pob:0.798, sh:.355, esc:10.5, inf:.45, ing:1.20, auto:.60, casa:.60, alt: 1.5, ton:-0.25, sol: .02, pib:200},
+ {n:"Campeche",           pob:0.929, sh:.335, esc: 9.5, inf:.62, ing:0.95, auto:.35, casa:.70, alt:-1.5, ton: 0.35, sol: .01, pib:780},
+ {n:"Chiapas",            pob:5.544, sh:.305, esc: 7.8, inf:.76, ing:0.65, auto:.22, casa:.78, alt:-2.5, ton: 0.50, sol:-.03, pib: 65},
+ {n:"Chihuahua",          pob:3.742, sh:.345, esc: 9.9, inf:.37, ing:1.12, auto:.58, casa:.68, alt: 1.8, ton:-0.30, sol: .01, pib:200},
+ {n:"Ciudad de México",   pob:9.209, sh:.355, esc:11.5, inf:.49, ing:1.25, auto:.38, casa:.58, alt: 0.5, ton:-0.10, sol: .05, pib:350},
+ {n:"Coahuila",           pob:3.147, sh:.345, esc:10.4, inf:.36, ing:1.12, auto:.57, casa:.70, alt: 1.5, ton:-0.25, sol: .01, pib:250},
+ {n:"Colima",             pob:0.731, sh:.345, esc: 9.9, inf:.55, ing:0.98, auto:.48, casa:.70, alt: 0.3, ton:-0.05, sol: .01, pib:160},
+ {n:"Durango",            pob:1.833, sh:.335, esc: 9.6, inf:.53, ing:0.92, auto:.50, casa:.72, alt: 1.0, ton:-0.15, sol: .00, pib:145},
+ {n:"Estado de México",   pob:16.992,sh:.345, esc:10.1, inf:.62, ing:0.92, auto:.33, casa:.66, alt:-0.3, ton: 0.15, sol: .02, pib:110},
+ {n:"Guanajuato",         pob:6.166, sh:.330, esc: 9.2, inf:.62, ing:0.92, auto:.42, casa:.70, alt:-0.3, ton: 0.05, sol: .00, pib:160},
+ {n:"Guerrero",           pob:3.541, sh:.315, esc: 8.7, inf:.78, ing:0.72, auto:.24, casa:.76, alt:-2.0, ton: 0.40, sol:-.01, pib: 85},
+ {n:"Hidalgo",            pob:3.083, sh:.330, esc: 9.4, inf:.71, ing:0.82, auto:.32, casa:.76, alt:-1.2, ton: 0.25, sol: .00, pib:120},
+ {n:"Jalisco",            pob:8.348, sh:.340, esc: 9.9, inf:.50, ing:1.00, auto:.47, casa:.66, alt: 0.5, ton:-0.10, sol: .02, pib:190},
+ {n:"Michoacán",          pob:4.749, sh:.325, esc: 8.7, inf:.70, ing:0.83, auto:.40, casa:.74, alt:-0.5, ton: 0.10, sol: .00, pib:120},
+ {n:"Morelos",            pob:1.972, sh:.340, esc: 9.9, inf:.68, ing:0.85, auto:.33, casa:.72, alt:-0.8, ton: 0.15, sol: .02, pib:115},
+ {n:"Nayarit",            pob:1.235, sh:.335, esc: 9.7, inf:.63, ing:0.90, auto:.42, casa:.72, alt: 0.3, ton: 0.00, sol: .01, pib:115},
+ {n:"Nuevo León",         pob:5.784, sh:.350, esc:10.7, inf:.36, ing:1.20, auto:.55, casa:.66, alt: 1.6, ton:-0.30, sol: .01, pib:290},
+ {n:"Oaxaca",             pob:4.132, sh:.320, esc: 8.5, inf:.80, ing:0.70, auto:.25, casa:.80, alt:-2.5, ton: 0.50, sol:-.02, pib: 85},
+ {n:"Puebla",             pob:6.584, sh:.325, esc: 9.4, inf:.73, ing:0.80, auto:.30, casa:.74, alt:-1.5, ton: 0.30, sol: .00, pib:120},
+ {n:"Querétaro",          pob:2.368, sh:.345, esc:10.2, inf:.50, ing:1.05, auto:.45, casa:.64, alt: 0.2, ton: 0.00, sol: .02, pib:250},
+ {n:"Quintana Roo",       pob:1.858, sh:.360, esc:10.2, inf:.52, ing:1.05, auto:.34, casa:.58, alt:-0.5, ton: 0.20, sol: .04, pib:180},
+ {n:"San Luis Potosí",    pob:2.823, sh:.330, esc: 9.6, inf:.60, ing:0.90, auto:.42, casa:.72, alt:-0.3, ton: 0.10, sol: .00, pib:165},
+ {n:"Sinaloa",            pob:3.027, sh:.340, esc:10.2, inf:.52, ing:0.98, auto:.50, casa:.70, alt: 1.5, ton:-0.20, sol: .01, pib:140},
+ {n:"Sonora",             pob:2.945, sh:.345, esc:10.5, inf:.45, ing:1.12, auto:.62, casa:.68, alt: 2.0, ton:-0.30, sol: .02, pib:215},
+ {n:"Tabasco",            pob:2.403, sh:.335, esc: 9.7, inf:.62, ing:0.88, auto:.30, casa:.74, alt:-1.2, ton: 0.30, sol: .01, pib:180},
+ {n:"Tamaulipas",         pob:3.528, sh:.345, esc:10.0, inf:.48, ing:1.00, auto:.45, casa:.66, alt: 1.2, ton:-0.20, sol: .02, pib:170},
+ {n:"Tlaxcala",           pob:1.343, sh:.330, esc: 9.7, inf:.72, ing:0.78, auto:.32, casa:.76, alt:-1.2, ton: 0.20, sol: .00, pib: 95},
+ {n:"Veracruz",           pob:8.063, sh:.335, esc: 8.9, inf:.68, ing:0.78, auto:.28, casa:.74, alt:-1.5, ton: 0.30, sol: .01, pib:115},
+ {n:"Yucatán",            pob:2.321, sh:.340, esc: 9.6, inf:.60, ing:0.88, auto:.34, casa:.74, alt:-2.0, ton: 0.35, sol: .01, pib:145},
+ {n:"Zacatecas",          pob:1.622, sh:.325, esc: 9.2, inf:.65, ing:0.85, auto:.48, casa:.76, alt: 0.5, ton:-0.05, sol: .00, pib:130}
+];
+var NS=STATES.length;
+
+/* población masculina 18-70 por entidad, anclada al total nacional de 42.25 M */
+var TOTAL=42.25e6, rawSum=0, i, s;
+for(i=0;i<NS;i++){ STATES[i].raw=STATES[i].pob*1e6*STATES[i].sh; rawSum+=STATES[i].raw }
+for(i=0;i<NS;i++){ STATES[i].men=STATES[i].raw*TOTAL/rawSum }
+
+/* medias nacionales ponderadas: los parámetros estatales se usan como desviaciones */
+function wmean(key){var a=0;for(var j=0;j<NS;j++)a+=STATES[j][key]*STATES[j].men;return a/TOTAL}
+var BAR={esc:wmean("esc"),inf:wmean("inf"),ing:wmean("ing"),auto:wmean("auto"),
+         casa:wmean("casa"),alt:wmean("alt"),ton:wmean("ton"),sol:wmean("sol"),pib:wmean("pib")};
+for(i=0;i<NS;i++){
+  s=STATES[i];
+  s.dEsc=(s.esc-BAR.esc)*0.30;          // en desviaciones estándar del latente
+  s.dTon=s.ton-BAR.ton;
+  s.dAlt=s.alt-BAR.alt;
+  s.dSol=s.sol-BAR.sol;
+  s.mIng=s.ing/BAR.ing;
+  s.oForm=logit(1-s.inf)-logit(1-BAR.inf);
+  s.oAuto=logit(s.auto)-logit(BAR.auto);
+  s.oCasa=logit(s.casa)-logit(BAR.casa);
+}
+/* rangos entre las 32 entidades (1 = mejor) */
+function rankBy(key,desc){
+  var ord=STATES.map(function(x,k){return k}).sort(function(a,b){
+    return desc? STATES[b][key]-STATES[a][key] : STATES[a][key]-STATES[b][key];
+  });
+  ord.forEach(function(k,pos){ STATES[k]["r_"+key]=pos+1 });
+}
+rankBy("pib",true); rankBy("ing",true); rankBy("esc",true); rankBy("auto",true); rankBy("inf",false); rankBy("men",true);
+
+/* ================= parámetros nacionales ================= */
+var AGE_BUCKETS=[[18,20,2.25],[20,25,5.45],[25,30,5.35],[30,35,5.05],[35,40,4.80],[40,45,4.50],
+                 [45,50,4.00],[50,55,3.45],[55,60,2.85],[60,65,2.30],[65,71,2.25]];
+var ageTot=0; for(i=0;i<AGE_BUCKETS.length;i++) ageTot+=AGE_BUCKETS[i][2];
+var ageCum=cumsum(AGE_BUCKETS.map(function(b){return b[2]/ageTot}));
+
+var AVAIL=[[18,.97],[22,.82],[27,.52],[32,.34],[37,.27],[42,.24],[47,.22],[52,.21],[57,.21],[62,.22],[70,.25]];
+function pAvail(a){
+  for(var j=1;j<AVAIL.length;j++){
+    if(a<=AVAIL[j][0]){var t=(a-AVAIL[j-1][0])/(AVAIL[j][0]-AVAIL[j-1][0]);return AVAIL[j-1][1]+t*(AVAIL[j][1]-AVAIL[j-1][1])}
+  }
+  return AVAIL[AVAIL.length-1][1];
+}
+/* densidad de edad, misma forma para hombres y mujeres (simplificación) */
+function ageDensity(a){
+  for(var j=0;j<AGE_BUCKETS.length;j++){
+    var b=AGE_BUCKETS[j];
+    if(a>=b[0]&&a<b[1]) return (b[2]/ageTot)/(b[1]-b[0]);
+  }
+  return 0;
+}
+/* mujeres 18-70: disponibilidad (sin pareja) por edad — soltería baja antes, viudez la sube después */
+var AVAIL_F=[[18,.95],[22,.68],[27,.38],[32,.27],[37,.24],[42,.23],[47,.24],[52,.27],[57,.33],[62,.40],[70,.50]];
+function pAvailF(a){
+  for(var j=1;j<AVAIL_F.length;j++){
+    if(a<=AVAIL_F[j][0]){var t=(a-AVAIL_F[j-1][0])/(AVAIL_F[j][0]-AVAIL_F[j-1][0]);return AVAIL_F[j-1][1]+t*(AVAIL_F[j][1]-AVAIL_F[j-1][1])}
+  }
+  return AVAIL_F[AVAIL_F.length-1][1];
+}
+var FEMALE_RATIO=1.061, FEMALE_TOTAL=TOTAL*FEMALE_RATIO;   // ~44.9 M mujeres de 18-70, aprox. nacional
+/* mujeres sin pareja dentro de un rango de edad, como fracción de TODA la población femenina 18-70 */
+function femaleSingleShare(a1,a2){
+  var num=0, step=0.5;
+  for(var a=18; a<70; a+=step){
+    if(a>=a1 && a<a2+1) num += ageDensity(a+step/2)*pAvailF(a+step/2)*step;
+  }
+  return num;
+}
+/* atractivo físico: rasgo latente ~N(0,1), independiente de todo lo demás, igual en cualquier estado.
+   Los cortes son los quintiles teóricos de una normal estándar. */
+var LOOKS_CUT=[-Infinity,-0.8416,-0.2533,0.2533,0.8416];
+var LOOKS_LBL=["cualquiera","medio feo o mejor","normal o mejor","agradable o mejor","guapo — top 20%"];
+function eduDist(a){
+  if(a<25) return [.13,.28,.40,.19];
+  if(a<35) return [.15,.29,.29,.27];
+  if(a<45) return [.22,.32,.24,.22];
+  if(a<55) return [.31,.31,.19,.19];
+  return [.47,.26,.13,.14];
+}
+var EDU_CUM={};
+(function(){ var keys=[24,34,44,54,99]; keys.forEach(function(k){ EDU_CUM[k]=cumsum(eduDist(k===24?20:k===34?30:k===44?40:k===54?50:60)) }) })();
+function eduCum(a){ return a<25?EDU_CUM[24]:a<35?EDU_CUM[34]:a<45?EDU_CUM[44]:a<55?EDU_CUM[54]:EDU_CUM[99] }
+
+var TONE_W=[.03,.05,.08,.11,.14,.15,.14,.12,.09,.06,.03], TONE_CUM=cumsum(TONE_W);
+var TONE_HEX=["#F6E3D6","#F0D6C4","#E9C6AA","#DFB28E","#D29D76","#C08B63","#A97653","#8E6044","#714A36","#553628","#3C251A"];
+
+function pOcupado(a){ if(a<25)return .64; if(a<55)return .93; if(a<65)return .81; return .58 }
+var P_FORMAL=[.28,.38,.52,.70], MED_ING=[6200,7600,9200,15500];
+function ageFactor(a){ if(a<25)return .74; if(a<30)return .89; if(a<40)return 1.05; if(a<50)return 1.12; if(a<60)return 1.04; return .90 }
+function heightBase(a){ if(a<25)return 169.0; if(a<35)return 168.0; if(a<45)return 166.6; if(a<55)return 165.6; return 164.2 }
+
+/* ================= población sintética por entidad ================= */
+var TARGET=1200000, N=0;
+for(i=0;i<NS;i++){ STATES[i].samp=Math.max(12000,Math.round(TARGET*STATES[i].men/TOTAL)); N+=STATES[i].samp }
+var WS=new Float64Array(NS);
+for(i=0;i<NS;i++) WS[i]=STATES[i].men/STATES[i].samp;
+
+var pAge,pH,pInc,pEdu,pTone,pJob,pFlags,pSt,pLooks,idxBuf;
+
+function build(){
+  pAge=new Float32Array(N); pH=new Float32Array(N); pInc=new Float32Array(N);
+  pEdu=new Uint8Array(N); pTone=new Uint8Array(N); pJob=new Uint8Array(N);
+  pFlags=new Uint8Array(N); pSt=new Uint8Array(N); pLooks=new Float32Array(N); idxBuf=new Int32Array(N);
+  var k=0;
+  for(var si=0;si<NS;si++){
+    var S=STATES[si];
+    for(var c=0;c<S.samp;c++){
+      var b=AGE_BUCKETS[pickCum(ageCum,rnd())];
+      var age=b[0]+rnd()*(b[1]-b[0]);
+      var z=gauss();                                   // nivel socioeconómico latente
+
+      var edu=pickCum(eduCum(age), ncdf(0.70*z+0.714*gauss()+S.dEsc));
+      var tone=pickCum(TONE_CUM,  ncdf(-0.34*z+0.940*gauss()+S.dTon));
+
+      var job=0;
+      if(rnd()<pOcupado(age)+0.02*z){
+        job = (rnd()<logistic(logit(P_FORMAL[edu])+0.25*z+S.oForm))?2:1;
+      }
+      var inc=0;
+      if(job>0){
+        var mu=Math.log(MED_ING[edu]*ageFactor(age)*(job===2?1.30:0.85)*S.mIng)+0.25*z;
+        inc=Math.exp(mu+0.62*gauss());
+      }
+      var incRef=Math.max(inc,1500)/9000;
+      var h=heightBase(age)+S.dAlt+1.2*z+6.85*gauss();
+
+      var f=0;
+      if(rnd()<logistic(-1.10+1.00*Math.log(incRef)+0.022*(age-35)+S.oAuto)) f|=1;
+      if(rnd()<logistic(-2.30+0.062*(age-18)+0.45*Math.log(incRef)+S.oCasa)) f|=2;
+      if(rnd()<logistic(-2.20+0.075*(age-18)+0.35*Math.log(incRef)))         f|=4;
+      if(rnd()<pAvail(age)+S.dSol) f|=8;
+
+      pAge[k]=age; pH[k]=h; pInc[k]=inc; pEdu[k]=edu; pTone[k]=tone; pJob[k]=job; pFlags[k]=f; pSt[k]=si;
+      pLooks[k]=gauss();                                // atractivo físico, independiente de todo lo demás
+      k++;
+    }
+  }
+}
+
+/* ================= controles ================= */
+var ING_STEPS=[0,2000,4000,6000,8000,10000,12000,15000,20000,25000,30000,40000,50000,75000,100000];
+var EDU_LBL=["Cualquiera","Secundaria terminada","Preparatoria o técnico","Licenciatura o más"];
+var TRAB_LBL=["Cualquiera","Que trabaje","Empleo formal","Profesionista con empleo formal"];
+var $=function(id){return document.getElementById(id)};
+var el={edo:$("edo"),edadMin:$("edadMin"),edadMax:$("edadMax"),est:$("est"),ing:$("ing"),edu:$("edu"),
+        trab:$("trab"),auto:$("auto"),casa:$("casa"),solo:$("solo"),libre:$("libre"),looks:$("looks")};
+var tonesOn=[1,1,1,1,1,1,1,1,1,1,1].map(Boolean);
+
+STATES.forEach(function(S,k){
+  var o=document.createElement("option"); o.value=k; o.textContent=S.n; el.edo.appendChild(o);
+});
+
+var tonesBox=$("tones");
+for(var t=0;t<11;t++){
+  (function(idx){
+    var btn=document.createElement("button");
+    btn.className="tone"; btn.type="button"; btn.style.background=TONE_HEX[idx];
+    btn.setAttribute("aria-pressed","true");
+    btn.setAttribute("aria-label","Tono "+(idx+1)+" de 11");
+    btn.addEventListener("click",function(){
+      tonesOn[idx]=!tonesOn[idx];
+      btn.setAttribute("aria-pressed",tonesOn[idx]?"true":"false");
+      update();
+    });
+    tonesBox.appendChild(btn);
+  })(t);
+}
+
+function fmt(n){
+  if(n>=1e6) return (n/1e6).toFixed(n>=1e7?1:2).replace(/\.0+$/,"")+" M";
+  return Math.round(n).toLocaleString("es-MX");
+}
+function money(v){return "$"+v.toLocaleString("es-MX")}
+
+function readState(){
+  var a1=+el.edadMin.value, a2=+el.edadMax.value;
+  if(a1>a2){var tmp=a1;a1=a2;a2=tmp}
+  return {edo:+el.edo.value, a1:a1, a2:a2, h:+el.est.value, inc:ING_STEPS[+el.ing.value],
+          edu:+el.edu.value, trab:+el.trab.value, auto:el.auto.checked, casa:el.casa.checked,
+          solo:el.solo.checked, libre:el.libre.checked, looks:+el.looks.value, tones:tonesOn.slice()};
+}
+function buildFilters(st){
+  var all=st.tones.every(function(x){return x});
+  return [
+    {on:st.libre, name:"Está sin pareja", sub:"soltero, separado, divorciado o viudo", f:function(i){return (pFlags[i]&8)!==0}},
+    {on:!(st.a1===18&&st.a2===70), name:"Edad", sub:"de "+st.a1+" a "+st.a2+" años", f:function(i){return pAge[i]>=st.a1&&pAge[i]<st.a2+1}},
+    {on:st.h>150, name:"Estatura", sub:(st.h/100).toFixed(2)+" m o más", f:function(i){return pH[i]>=st.h}},
+    {on:st.edu>0, name:"Escolaridad", sub:EDU_LBL[st.edu], f:function(i){return pEdu[i]>=st.edu}},
+    {on:st.trab>0, name:"Trabajo", sub:TRAB_LBL[st.trab],
+      f:function(i){ if(st.trab===1)return pJob[i]>0; if(st.trab===2)return pJob[i]===2; return pJob[i]===2&&pEdu[i]===3 }},
+    {on:st.inc>0, name:"Ingreso", sub:money(st.inc)+" al mes o más", f:function(i){return pInc[i]>=st.inc}},
+    {on:st.auto, name:"Auto propio", sub:"vehículo a su disposición", f:function(i){return (pFlags[i]&1)!==0}},
+    {on:st.casa, name:"Vivienda propia", sub:"a su nombre o del hogar que encabeza", f:function(i){return (pFlags[i]&2)!==0}},
+    {on:st.solo, name:"Vive por su cuenta", sub:"no en casa de sus papás", f:function(i){return (pFlags[i]&4)!==0}},
+    {on:!all, name:"Tono de piel", sub:st.tones.filter(Boolean).length+" de 11 tonos de la escala", f:function(i){return st.tones[pTone[i]]}},
+    {on:st.looks>0, name:"Atractivo físico", sub:LOOKS_LBL[st.looks]+" · rasgo simulado, no medido por el INEGI",
+      f:function(i){var c=LOOKS_CUT[st.looks]; return pLooks[i]>=c}}
+  ].filter(function(f){return f.on});
+}
+
+/* cascada sobre una lista de índices que se va encogiendo */
+function cascade(filters, scope){
+  var len=0, j, i2;
+  if(scope<0){ for(j=0;j<N;j++) idxBuf[j]=j; len=N }
+  else { for(j=0;j<N;j++){ if(pSt[j]===scope) idxBuf[len++]=j } }
+  var prevW = scope<0 ? TOTAL : STATES[scope].men;
+  var rows=[];
+  for(var fi=0;fi<filters.length;fi++){
+    var F=filters[fi], out=0, w=0;
+    for(j=0;j<len;j++){
+      i2=idxBuf[j];
+      if(F.f(i2)){ idxBuf[out++]=i2; w+=WS[pSt[i2]] }
+    }
+    len=out;
+    rows.push({name:F.name, sub:F.sub, after:w, cut:prevW>0?1-w/prevW:0});
+    prevW=w;
+  }
+  return {rows:rows, cases:len, weight:prevW, len:len};
+}
+/* pesos por entidad de los sobrevivientes (usa idxBuf, así que va justo después de cascade) */
+function perState(len){
+  var out=new Float64Array(NS);
+  for(var j=0;j<len;j++){ var i2=idxBuf[j]; out[pSt[i2]]+=WS[pSt[i2]] }
+  return out;
+}
+
+/* ================= dibujo ================= */
+var cv=$("cv"), ctx=cv.getContext("2d");
+var COLS=125, ROWS=80, DOTS=COLS*ROWS;
+var perm=(function(){
+  var p=new Int32Array(DOTS), r=mulberry32(7);
+  for(var a=0;a<DOTS;a++)p[a]=a;
+  for(var b=DOTS-1;b>0;b--){var q=(r()*(b+1))|0,tm=p[b];p[b]=p[q];p[q]=tm}
+  return p;
+})();
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+function drawDots(share){
+  var w=cv.width,h=cv.height,cw=w/COLS,ch=h/ROWS,r=Math.min(cw,ch)*0.32;
+  ctx.clearRect(0,0,w,h);
+  var lit=Math.round(share*DOTS); if(share>0&&lit<1)lit=1;
+  var on=new Uint8Array(DOTS);
+  for(var a=0;a<lit;a++) on[perm[a]]=1;
+  var dim=css("--line-strong")||"#B9BFCB", hot=css("--accent")||"#D8175E";
+  for(var idx=0;idx<DOTS;idx++){
+    var x=(idx%COLS)*cw+cw/2, y=((idx/COLS)|0)*ch+ch/2;
+    ctx.beginPath(); ctx.arc(x,y,on[idx]?r*1.5:r,0,6.283185);
+    ctx.fillStyle=on[idx]?hot:dim; ctx.globalAlpha=on[idx]?1:.8; ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  return lit;
+}
+var reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var animFrom=0,animTo=0,animT0=0,animRaf=null;
+function animateBig(to){
+  var node=$("big"); node.classList.remove("loading");
+  if(reduce){ node.textContent=fmt(to); animTo=to; return }
+  animFrom=animTo; animTo=to; animT0=performance.now();
+  if(animRaf) cancelAnimationFrame(animRaf);
+  (function step(now){
+    var p=Math.min(1,((now||performance.now())-animT0)/480), e=1-Math.pow(1-p,3);
+    node.textContent=fmt(animFrom+(animTo-animFrom)*e);
+    if(p<1) animRaf=requestAnimationFrame(step);
+  })(animT0);
+}
+
+/* ================= radiografía económica ================= */
+function rankChip(r){
+  var cls = r<=8?"good":(r>=25?"bad":"");
+  return '<span class="rank '+cls+'">'+r+'° de 32</span>';
+}
+function gauge(frac){
+  frac=Math.max(0.02,Math.min(1,frac));
+  return '<div class="gauge"><i style="left:0; width:'+(frac*100).toFixed(1)+'%"></i><u style="left:50%"></u></div>';
+}
+function ecoCard(si){
+  var box=$("eco");
+  if(si<0){
+    box.innerHTML =
+      '<div class="eco-hd"><p class="eco-name">Todo México</p>'+
+      '<span class="eco-pop">42.3 M de hombres de 18 a 70 años · 32 entidades</span></div>'+
+      '<div class="eco-grid">'+
+      ecoCell("PIB per cápita","$"+Math.round(BAR.pib)+" mil",null,0.5,"promedio nacional")+
+      ecoCell("Ingreso laboral","índice 100",null,0.5,"la referencia de todos los estados")+
+      ecoCell("Informalidad laboral",(BAR.inf*100).toFixed(0)+"%",null,BAR.inf,"de los ocupados, sin seguridad social")+
+      ecoCell("Escolaridad promedio",BAR.esc.toFixed(1)+" años",null,BAR.esc/12,"población de 15 años y más")+
+      ecoCell("Viviendas con auto",(BAR.auto*100).toFixed(0)+"%",null,BAR.auto,"promedio del país")+
+      '</div>'+
+      '<div class="eco-foot">Elige un estado para ver qué tanto se aleja de esta media — y cómo eso mueve tu número.</div>';
+    return;
+  }
+  var S=STATES[si];
+  var pibMax=Math.max.apply(null,STATES.map(function(x){return x.pib}));
+  box.innerHTML =
+    '<div class="eco-hd"><p class="eco-name">'+S.n+'</p>'+
+    '<span class="eco-pop">'+fmt(S.men)+' hombres de 18 a 70 · '+(100*S.men/TOTAL).toFixed(1)+'% del país · '+S.r_men+'° más poblado</span></div>'+
+    '<div class="eco-grid">'+
+    ecoCell("PIB per cápita","$"+S.pib+" mil",S.r_pib,S.pib/pibMax,pctVs(S.pib,BAR.pib)+" vs. la media nacional")+
+    ecoCell("Ingreso laboral","índice "+Math.round(100*S.ing/BAR.ing),S.r_ing,(S.ing/BAR.ing)/2,pctVs(S.ing,BAR.ing)+" que el promedio del país")+
+    ecoCell("Informalidad laboral",(S.inf*100).toFixed(0)+"%",S.r_inf,S.inf,"nacional "+(BAR.inf*100).toFixed(0)+"%")+
+    ecoCell("Escolaridad promedio",S.esc.toFixed(1)+" años",S.r_esc,S.esc/12,"nacional "+BAR.esc.toFixed(1)+" años")+
+    ecoCell("Viviendas con auto",(S.auto*100).toFixed(0)+"%",S.r_auto,S.auto,"nacional "+(BAR.auto*100).toFixed(0)+"%")+
+    '</div>'+
+    '<div class="eco-foot">'+ecoStory(S)+'</div>';
+}
+function ecoCell(lbl,val,rank,frac,vs){
+  return '<div class="eco"><div class="eco-lbl">'+lbl+'</div><div class="eco-v">'+val+'</div>'+
+         '<div class="eco-meta">'+(rank?rankChip(rank):'')+'<span class="eco-vs">'+vs+'</span></div>'+gauge(frac)+'</div>';
+}
+function pctVs(v,base){
+  var d=100*(v/base-1);
+  return (d>=0?"+":"−")+Math.abs(d).toFixed(0)+"%";
+}
+function ecoStory(S){
+  if(S.n==="Campeche") return "El PIB per cápita más alto del país sale de la extracción de petróleo, no de los salarios: seis de cada diez ocupados están en la informalidad y el ingreso laboral queda por debajo de la media.";
+  if(S.r_inf<=5 && S.r_ing<=8) return "Empleo formal e ingresos altos van juntos aquí: es de los estados donde un filtro de ingreso o de prestaciones recorta menos.";
+  if(S.r_inf>=28) return "Con esta tasa de informalidad, casi cualquier requisito de ingreso o de prestaciones se lleva la mayor parte de la población de un solo golpe.";
+  if(S.r_auto<=5) return "El parque vehicular por hogar es de los más altos del país, así que pedir auto propio cuesta mucho menos aquí que en el promedio nacional.";
+  if(S.r_esc<=4) return "La escolaridad promedio más alta del país abarata el filtro de licenciatura, aunque no siempre venga acompañado de empleo formal.";
+  if(S.r_pib>=28) return "Bajo PIB per cápita, informalidad alta y escolaridad corta se refuerzan entre sí: aquí el embudo se cierra desde los primeros filtros.";
+  return "Un estado de perfil intermedio: se parece a la media nacional en casi todo, y su número se mueve sobre todo con el tamaño de su población.";
+}
+
+/* ================= render principal ================= */
+function update(){
+  var st=readState();
+  $("v-edad").textContent=st.a1+" – "+st.a2+" años";
+  $("v-est").textContent=(st.h/100).toFixed(2)+" m";
+  $("v-ing").textContent=st.inc===0?"sin mínimo":money(st.inc);
+  $("v-tono").textContent=st.tones.filter(Boolean).length+" / 11";
+
+  var filters=buildFilters(st);
+  var scopeName = st.edo<0 ? "todo México" : STATES[st.edo].n;
+  var scopeTotal= st.edo<0 ? TOTAL : STATES[st.edo].men;
+
+  // 1) nacional sin recorte de estado: sirve para el ranking de entidades
+  var nat=cascade(filters,-1);
+  var byState=perState(nat.len);
+
+  // 2) resultado del ámbito elegido
+  var res = st.edo<0 ? nat : cascade(filters,st.edo);
+  var people=res.weight, share=scopeTotal>0?people/scopeTotal:0;
+  var coarse = res.cases>0 && res.cases<60;
+
+  $("kicker").textContent = st.edo<0 ? "Hombres que cumplen todo" : "Hombres que cumplen todo en "+STATES[st.edo].n;
+  animateBig(people);
+  $("bigsub").innerHTML = people<1
+    ? 'Con estos requisitos el modelo no encuentra prácticamente a nadie entre los <b>'+fmt(scopeTotal)+'</b> hombres de 18 a 70 años de '+scopeName+'.'
+    : 'de <b>'+fmt(scopeTotal)+'</b> hombres de 18 a 70 años en '+scopeName+'.';
+  $("odds").textContent = share>0
+    ? (1/share<1.05 ? "todos" : "1 de cada "+(1/share>=100?Math.round(1/share).toLocaleString("es-MX"):(1/share).toFixed(1)))
+    : "ninguno";
+  var pp=share*100;
+  $("pct").textContent = share===0?"0 %": pp<0.001?"< 0.001 %": pp<0.01?pp.toFixed(3)+" %": pp<1?pp.toFixed(2)+" %": pp.toFixed(1)+" %";
+  $("pctlbl").textContent = st.edo<0 ? "del total nacional" : "de los hombres del estado";
+
+  var lit=drawDots(share);
+  var cap=(share===0?"Ningún punto se enciende.":lit+" de 10,000 puntos.")+
+          " Cada punto ≈ "+Math.round(scopeTotal/DOTS).toLocaleString("es-MX")+" hombres de "+scopeName+".";
+  if(coarse) cap+="  ·  Solo "+res.cases+" casos en la simulación: la cifra es aproximada.";
+  $("dotcap").textContent=cap;
+
+  ecoCard(st.edo);
+  renderStates(byState,st.edo,share);
+  renderFunnel(res.rows,st,scopeName,scopeTotal);
+  renderMarket(st,people,scopeName);
+}
+
+function renderMarket(st,people,scopeName){
+  var scopeWomen = st.edo<0 ? FEMALE_TOTAL : STATES[st.edo].men*FEMALE_RATIO;
+  var womenShare = femaleSingleShare(st.a1,st.a2);
+  var women = scopeWomen*womenShare;
+  var ratio = people>0 ? women/people : null;
+
+  var ratioTxt, ratioNote;
+  if(people<1){
+    ratioTxt="—"; ratioNote="No hay hombres que cumplan tus requisitos: la competencia por ellos no se puede calcular.";
+  } else if(ratio>=1){
+    ratioTxt=(ratio<10?ratio.toFixed(1):Math.round(ratio).toLocaleString("es-MX"));
+    ratioNote="mujeres sin pareja de "+st.a1+"–"+st.a2+" años por cada hombre que cumple tus requisitos, en "+scopeName+".";
+  } else {
+    ratioTxt="1 : "+Math.round(1/ratio).toLocaleString("es-MX");
+    ratioNote="hombres que cumplen tus requisitos por cada mujer sin pareja de "+st.a1+"–"+st.a2+" años — aquí la oferta gana.";
+  }
+
+  $("market").innerHTML =
+    '<div class="eco-grid">'+
+    '<div class="eco"><div class="eco-lbl">Mujeres sin pareja, tu rango de edad</div>'+
+    '<div class="eco-v">'+fmt(women)+'</div>'+
+    '<div class="eco-meta"><span class="eco-vs">de '+fmt(scopeWomen)+' mujeres de 18 a 70 en '+scopeName+'</span></div></div>'+
+    '<div class="eco"><div class="eco-lbl">Compitiendo por cada hombre que califica</div>'+
+    '<div class="eco-v" style="color:var(--accent)">'+ratioTxt+'</div>'+
+    '<div class="eco-meta"><span class="eco-vs">'+ratioNote+'</span></div></div>'+
+    '</div>'+
+    '<div class="eco-foot">Estimado con la misma forma de curva de edad que los hombres y una curva de soltería propia (baja antes por uniones más tempranas, sube después por viudez). No ajusta por orientación sexual ni por la brecha de edad real entre parejas — muchas mujeres emparejan con hombres mayores que ellas, así que compararlas en el mismo rango de edad es una simplificación.</div>';
+}
+
+function renderStates(byState,sel,natShare){
+  var rows=[];
+  for(var k=0;k<NS;k++){
+    var sh=STATES[k].men>0?byState[k]/STATES[k].men:0;
+    rows.push({k:k, n:STATES[k].n, men:byState[k], sh:sh});
+  }
+  rows.sort(function(a,b){return b.sh-a.sh});
+  var top=rows.length?rows[0].sh:0;
+  var html='<div class="srow head"><span></span><span>Entidad</span><span class="snum">Cumplen</span>'+
+           '<span class="sbarhd">% de sus hombres</span><span class="sidx">vs. país</span></div>';
+  rows.forEach(function(R,pos){
+    var idx = natShare>0 ? Math.round(100*R.sh/natShare) : 0;
+    var cls = idx>=100?"up":"down";
+    html+='<div class="srow'+(R.k===sel?" on":"")+'" data-k="'+R.k+'" role="button" tabindex="0">'+
+          '<span class="spos">'+(pos+1)+'</span>'+
+          '<span class="sname">'+R.n+'</span>'+
+          '<span class="snum">'+(R.men<1?"—":fmt(R.men))+'</span>'+
+          '<span class="sbar"><i style="width:'+(top>0?Math.max(2,100*R.sh/top):0).toFixed(1)+'%"></i></span>'+
+          '<span class="sidx '+cls+'">'+(natShare>0?idx:"—")+'</span></div>';
+  });
+  var box=$("states"); box.innerHTML=html;
+  box.querySelectorAll(".srow[data-k]").forEach(function(node){
+    node.addEventListener("click",function(){ el.edo.value=node.getAttribute("data-k"); update() });
+    node.addEventListener("keydown",function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); el.edo.value=node.getAttribute("data-k"); update() } });
+  });
+}
+
+function renderFunnel(rows,st,scopeName,scopeTotal){
+  var html='<div class="frow head"><span>Requisito</span><span class="fbarhd">Sobreviven</span><span class="fnum">Hombres</span><span class="fcut">Recorte</span></div>';
+  html+='<div class="frow base"><span class="fname">Todos los hombres de 18 a 70<small>población base del modelo</small></span>'+
+        '<span class="bar"><i style="width:100%"></i></span><span class="fnum">'+fmt(TOTAL)+'</span><span class="fcut">—</span></div>';
+  if(st.edo>=0){
+    html+='<div class="frow scope"><span class="fname">Estado<small>'+scopeName+'</small></span>'+
+          '<span class="bar"><i style="width:'+(100*scopeTotal/TOTAL).toFixed(2)+'%"></i></span>'+
+          '<span class="fnum">'+fmt(scopeTotal)+'</span>'+
+          '<span class="fcut">−'+(100-100*scopeTotal/TOTAL).toFixed(1)+'%</span></div>';
+  }
+  rows.forEach(function(R){
+    html+='<div class="frow"><span class="fname">'+R.name+'<small>'+R.sub+'</small></span>'+
+          '<span class="bar"><i style="width:'+(100*R.after/scopeTotal).toFixed(3)+'%"></i></span>'+
+          '<span class="fnum">'+fmt(R.after)+'</span>'+
+          '<span class="fcut">−'+(R.cut*100).toFixed(R.cut<0.1?1:0)+'%</span></div>';
+  });
+  if(!rows.length){
+    html+='<div class="frow"><span class="fname">Sin requisitos activos<small>mueve los filtros para empezar a recortar</small></span>'+
+          '<span class="bar"></span><span class="fnum">—</span><span class="fcut">—</span></div>';
+  }
+  $("funnel").innerHTML=html;
+}
+
+/* ================= presets ================= */
+var RESET_STATE={edo:-1,a1:18,a2:70,h:150,ing:0,edu:0,trab:0,auto:0,casa:0,solo:0,libre:0,looks:0};
+var PRESETS=[
+  {n:"El estándar de internet",   s:{edo:-1,a1:28,a2:38,h:180,ing:12,edu:3,trab:2,auto:1,casa:1,solo:1,libre:1,looks:0}},
+  {n:"Solo el top 20% guapo",     s:{edo:-1,a1:18,a2:70,h:150,ing:0, edu:0,trab:0,auto:0,casa:0,solo:0,libre:1,looks:4}},
+  {n:"Estabilidad, nada más",     s:{edo:-1,a1:28,a2:45,h:150,ing:5, edu:0,trab:2,auto:0,casa:0,solo:1,libre:1,looks:0}},
+  {n:"Que sea alto",              s:{edo:-1,a1:25,a2:40,h:180,ing:0, edu:0,trab:0,auto:0,casa:0,solo:0,libre:1,looks:0}},
+  {n:"Profesionista de 30",       s:{edo:-1,a1:28,a2:36,h:170,ing:8, edu:3,trab:3,auto:1,casa:0,solo:1,libre:1,looks:0}},
+  {n:"Sin filtros",               s:RESET_STATE}
+];
+var pbox=$("presets");
+PRESETS.forEach(function(p){
+  var b=document.createElement("button");
+  b.className="preset"; b.type="button"; b.textContent=p.n;
+  b.addEventListener("click",function(){ applyState(p.s) });
+  pbox.appendChild(b);
+});
+function applyState(v){
+  el.edo.value=v.edo; el.edadMin.value=v.a1; el.edadMax.value=v.a2; el.est.value=v.h; el.ing.value=v.ing;
+  el.edu.value=v.edu; el.trab.value=v.trab; el.looks.value=v.looks||0;
+  el.auto.checked=!!v.auto; el.casa.checked=!!v.casa; el.solo.checked=!!v.solo; el.libre.checked=!!v.libre;
+  for(var k=0;k<11;k++){ tonesOn[k]=true; tonesBox.children[k].setAttribute("aria-pressed","true") }
+  update();
+}
+$("reset").addEventListener("click",function(){ applyState(RESET_STATE) });
+
+/* ================= eventos ================= */
+var pending=false;
+function queue(){ if(pending)return; pending=true; requestAnimationFrame(function(){pending=false; update()}) }
+["edadMin","edadMax","est","ing"].forEach(function(id){ el[id].addEventListener("input",queue) });
+["edo","edu","trab","looks"].forEach(function(id){ el[id].addEventListener("change",update) });
+["auto","casa","solo","libre"].forEach(function(id){ el[id].addEventListener("change",update) });
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(){ setTimeout(update,60) });
+
+/* deja pintar la página antes de generar la población */
+setTimeout(function(){ build(); update() },40);
+})();
+</script>
+
+</body>
+</html>
