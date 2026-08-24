@@ -884,14 +884,24 @@ function money(v){return "$"+v.toLocaleString("es-MX")}
 var CANONICAL="https://cuantoshay.netlify.app";
 var AZTECA=87000;
 function verdictFor(n,scopeName){
-  if(n<1)   return ["No existe. Literalmente.","Ni un solo hombre en "+scopeName+" cumple todo lo que pediste al mismo tiempo."];
-  if(n<40)  return ["Caben en un elevador.","Son menos que los alumnos de un salón de clases. En todo "+scopeName+"."];
-  if(n<200) return ["Caben todos en un vagón del Metro.","Y sobrarían asientos."];
-  if(n<600) return ["Son menos que los 500 diputados federales.","Toda tu lista de candidatos cabe en la Cámara."];
-  if(n<5000)return ["Llenarían un teatro. Uno solo.","Todos los que cumplen, en "+scopeName+", en una sola función."];
-  if(n<AZTECA) return ["No alcanzan a llenar el Estadio Azteca.","Faltarían "+fmt(AZTECA-n)+" asientos por ocupar."];
-  if(n<1e6) return ["Llenarían el Azteca "+Math.round(n/AZTECA)+" veces.","Ya es un mercado de verdad."];
-  if(n<5e6) return ["Son más que la población de varios estados.","Hay de dónde escoger, y bastante."];
+  if(n<1)     return ["No existe. Literalmente.","Acabas de describir a un hombre que no existe en "+scopeName+"."];
+  if(n<5)     return ["Caben todos en un Uber.","Y todavía sobra el lugar de adelante."];
+  if(n<15)    return ["Caben en una fiesta en tu casa.","De las chiquitas. En la sala."];
+  if(n<45)    return ["Son menos que tu salón de la prepa.","Todos los que cumplen en "+scopeName+", en un solo salón."];
+  if(n<200)   return ["Caben todos en un vagón del Metro.","Y sobrarían asientos."];
+  if(n<700)   return ["No llenarían un antro un sábado.","Toda tu lista, en una sola pista de baile."];
+  if(n<3500)  return ["No llenan el Teatro Metropólitan.","Todos los que cumplen, en una sola función."];
+  if(n<AZTECA){
+    var faltan=Math.round(AZTECA-n);
+    return ["No llenan el Estadio Azteca.", faltan===1 ? "Faltaría un solo lugar por ocupar." : "Faltarían "+fmt(faltan)+" lugares por ocupar."];
+  }
+  if(n<1e6){
+    var r=n/AZTECA;
+    // con pocos Aztecas el redondeo miente (1.5 no es "uno"), así que ahí va decimal
+    var az=r<2.95 ? r.toFixed(1).replace(/\.0$/,"") : String(Math.round(r));
+    return [az==="1" ? "Justo un Azteca lleno." : "Son "+az+" Aztecas llenos.","Ya es un mercado de verdad."];
+  }
+  if(n<5e6)   return ["Son más que la población de varios estados.","Hay de dónde escoger, y bastante."];
   return ["Prácticamente cualquiera.","Con estos filtros casi no estás filtrando."];
 }
 
