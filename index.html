@@ -142,10 +142,6 @@ h1 em{font-family:"Newsreader",Georgia,serif; font-style:italic; font-weight:400
 .nav-btn.next:hover{filter:brightness(1.08); color:var(--accent-ink)}
 .nav-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
 .step-dots{display:flex; gap:4px; flex:1; justify-content:center; flex-wrap:wrap}
-.step-hint{
-  font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.06em;
-  text-transform:uppercase; color:var(--ink-3); white-space:nowrap; flex:0 0 auto;
-}
 .step-dot{
   width:6px; height:6px; border-radius:50%; background:var(--line-strong); border:0; padding:0;
   cursor:pointer; transition:all .15s;
@@ -176,6 +172,11 @@ h1 em{font-family:"Newsreader",Georgia,serif; font-style:italic; font-weight:400
 .opts-1 .opt{text-align:left}
 .opt:hover{border-color:var(--accent); color:var(--accent)}
 .opt[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent); color:var(--accent)}
+.opt[aria-pressed="true"]::after,
+.edo-item[aria-pressed="true"]::after,
+.edo-todo[aria-pressed="true"]::after{content:"  ✓"; font-weight:800}
+/* todas se hunden al tocarlas: ninguna parece bloqueada */
+.opt:active,.edo-item:active,.edo-todo:active,.who:active{transform:scale(.97)}
 .opt:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
 
 /* dónde buscas: toca y sigue */
@@ -215,7 +216,11 @@ h1 em{font-family:"Newsreader",Georgia,serif; font-style:italic; font-weight:400
 }
 .who small{display:block; font-weight:500; font-size:11px; color:var(--ink-3); margin-top:2px}
 .who:hover{border-color:var(--accent)}
+.who{position:relative}
 .who[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent); color:var(--accent)}
+.who[aria-pressed="true"]::after{
+  content:"✓"; position:absolute; top:5px; right:8px; font-size:11px; font-weight:800; color:var(--accent);
+}
 .who[aria-pressed="true"] small{color:var(--accent)}
 .who:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
 
@@ -810,7 +815,6 @@ h3{
     <div class="step-nav">
       <button class="nav-btn" id="stepPrev" type="button">Atrás</button>
       <div class="step-dots" id="stepDots"></div>
-      <span class="step-hint" id="stepHint" hidden>Toca y sigue</span>
       <button class="nav-btn next" id="stepNext" type="button">Siguiente</button>
     </div>
     <button class="all-toggle" id="allToggle" type="button">Ver todos los filtros de una vez</button>
@@ -1439,10 +1443,9 @@ function goStep(n){
   // en el último paso el botón cierra el flujo en vez de quedarse muerto
   $("stepNext").disabled=false;
   $("stepNext").textContent = (step===NSTEPS) ? "Ver mi resultado" : "Siguiente";
-  // en los pasos que se resuelven con un toque, el botón estorba
-  var soloTocar = (step<=2 || (step>=5 && step<=10));
-  $("stepNext").hidden = soloTocar;
-  $("stepHint").hidden = !soloTocar;
+  // "Siguiente" siempre a la vista: tocar una opción avanza, pero quien
+  // ya está conforme con lo elegido necesita una salida evidente
+  $("stepNext").hidden = false;
 }
 $("stepPrev").addEventListener("click",function(){ goStep(siguientePaso(step,-1)) });
 /* el análisis completo sólo aparece cuando lo pides: en el celular
