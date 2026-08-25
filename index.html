@@ -756,7 +756,7 @@ h3{
       <div class="field">
         <div class="label"><span>¿Tiene auto propio?</span></div>
         <div class="opts" id="optAuto"></div>
-        <input type="checkbox" id="auto" hidden aria-hidden="true">
+        <input type="hidden" id="auto" value="">
       </div>
       </div>
 
@@ -764,7 +764,7 @@ h3{
       <div class="field">
         <div class="label"><span>¿Vive por su cuenta?</span></div>
         <div class="opts" id="optSolo"></div>
-        <input type="checkbox" id="solo" hidden aria-hidden="true">
+        <input type="hidden" id="solo" value="">
         <p class="fine">Es decir, que no viva en casa de sus papás.</p>
       </div>
       </div>
@@ -773,8 +773,8 @@ h3{
       <div class="field">
         <div class="label"><span>¿Y la vivienda es suya?</span></div>
         <div class="opts" id="optCasa"></div>
-        <input type="checkbox" id="casa" hidden aria-hidden="true">
-        <p class="fine">Sólo aparece porque vive por su cuenta: la vivienda propia es la del hogar que encabeza.</p>
+        <input type="hidden" id="casa" value="">
+        <p class="fine">Aparece porque respondiste que sí vive por su cuenta: la vivienda propia es la del hogar que encabeza.</p>
       </div>
       </div>
 
@@ -782,8 +782,8 @@ h3{
       <div class="field">
         <div class="label"><span>Complexión</span></div>
         <div class="opts opts-1" id="optCuerpo"></div>
-        <input type="hidden" id="cuerpo" value="0">
-        <p class="fine">El IMC lo mide la ENSANUT: en México cerca de 3 de cada 4 adultos tienen sobrepeso u obesidad. "Con músculo" no lo mide nadie — se aproxima con quien hace ejercicio y no está en obesidad.</p>
+        <input type="hidden" id="cuerpo" value="">
+        <p class="fine">El IMC lo mide la ENSANUT: en México cerca de 3 de cada 4 adultos tienen sobrepeso u obesidad. "Fitness" no lo mide nadie — se aproxima con quien hace ejercicio y tiene un IMC en rango atlético.</p>
       </div>
       </div>
 
@@ -796,16 +796,14 @@ h3{
         <p class="fine">Los grupos son atajos sobre la misma escala de 11 tonos; también puedes tocar cada uno.</p>
       </div>
 
+      </div>
+
+      <div class="stepgroup" data-step="13">
       <div class="field">
-        <div class="label"><span>Atractivo físico mínimo</span></div>
-        <select id="looks">
-          <option value="0" selected>Muy feo — no importa</option>
-          <option value="1">Medio feo o mejor</option>
-          <option value="2">Normal, o equis</option>
-          <option value="3">Agradable</option>
-          <option value="4">Guapo — solo el top 20%</option>
-        </select>
-        <p class="fine">Rasgo simulado como una curva normal: el INEGI no mide esto, nadie lo mide. Sirve para ver el efecto, no como dato real.</p>
+        <div class="label"><span>Atractivo de cara</span></div>
+        <div class="opts opts-1" id="optLooks"></div>
+        <input type="hidden" id="looks" value="">
+        <p class="fine">Rasgo simulado como una curva normal: el INEGI no mide esto, nadie lo mide. Los niveles son los quintiles de esa curva.</p>
       </div>
       </div>
 
@@ -917,7 +915,7 @@ h3{
         <li><b>Vivienda propia</b> — la del hogar que encabeza; no cuenta la casa de sus papás. Por definición implica vivir por su cuenta, así que el modelo nunca genera dueños de casa viviendo con sus padres: si marcas los dos, el segundo ya no recorta nada.</li>
         <li><b>Tono de piel</b> — escala cromática de 11 tonos, el mismo tipo de instrumento que el INEGI usa en sus módulos de movilidad social y discriminación. Está aquí porque es un dato que el INEGI levanta y porque el resultado es justamente el punto: el filtro que la gente casi nunca dice en voz alta también tiene un número.</li>
         <li><b>Claros y morenos por estado</b> — los atajos "Claros" (tonos 1 a 4), "Medios" (5 a 7) y "Morenos" (8 a 11) agrupan la misma escala. La proporción de tonos claros no es igual en todo el país: en el modelo va de alrededor del 42% en Baja California y 40% en Nuevo León a cerca del 15% en Chiapas y Oaxaca, contra un 28% nacional. Ese gradiente norte-sur está tomado de las diferencias regionales que reportan los módulos del INEGI, no medido entidad por entidad, así que sirve para comparar estados entre sí y no como cifra oficial de cada uno.</li>
-        <li><b>Complexión</b> — sale del índice de masa corporal que mide la ENSANUT, donde cerca de 3 de cada 4 adultos en México tienen sobrepeso u obesidad; en el modelo son 75% de los hombres y 78% de las mujeres. La obesidad tampoco es pareja: va de alrededor del 42% en Campeche al 29% en Chiapas. <b>"Con músculo" no es un dato</b>: el IMC no distingue músculo de grasa y nadie lo mide a nivel nacional, así que se aproxima con quien reporta hacer ejercicio y no está en obesidad.</li>
+        <li><b>Complexión</b> — sale del índice de masa corporal que mide la ENSANUT, donde cerca de 3 de cada 4 adultos en México tienen sobrepeso u obesidad; en el modelo son 75% de los hombres y 78% de las mujeres. La obesidad tampoco es pareja: va de alrededor del 42% en Campeche al 29% en Chiapas. <b>"Fitness" no es un dato</b>: el IMC no distingue músculo de grasa y nadie lo mide a nivel nacional, así que se aproxima con quien reporta hacer ejercicio y tiene un IMC entre 20 y 27.</li>
         <li><b>Atractivo físico</b> — a diferencia de todo lo demás, esto <em>no</em> es un dato del INEGI: nadie lo mide. Se modela como un rasgo al azar, con forma de campana, igual de repartido en todo el país y sin relación con el ingreso o la escolaridad de cada quien. Los cinco niveles del selector son, literalmente, los quintiles de esa campana: "guapo" es el 20% más alto, "agradable" el 40% más alto, y así.</li>
       </ul>
 
@@ -1128,11 +1126,10 @@ var FEMALE_RATIO=1.061;   // mujeres por cada hombre de 18 a 70, proporción nac
    Los cortes son los quintiles teóricos de una normal estándar. */
 var LOOKS_CUT=[-Infinity,-0.8416,-0.2533,0.2533,0.8416];
 /* complexión: IMC de la ENSANUT; el músculo no es medible, se aproxima */
-var CUERPO_LBL=["cualquiera","delgado o normal (IMC menor a 25)","sin obesidad (IMC menor a 30)","con músculo: hace ejercicio y sin obesidad"];
+var CUERPO_LBL=["puede ser obeso","delgado o normal (IMC menor a 25)","fitness: hace ejercicio y con IMC atlético"];
 function cumpleCuerpo(i,modo){
   if(modo===1) return pImc[i]<25;
-  if(modo===2) return pImc[i]<30;
-  if(modo===3) return (pFlags[i]&16)!==0 && pImc[i]>=22 && pImc[i]<30;
+  if(modo===2) return (pFlags[i]&16)!==0 && pImc[i]>=20 && pImc[i]<27;
   return true;
 }
 var LOOKS_LBL=["cualquiera","medio feo o mejor","normal o mejor","agradable o mejor","top 20%"];
@@ -1319,7 +1316,7 @@ var DESTACADOS=["Estado de México","Ciudad de México","Jalisco","Nuevo León",
 })();
 /* helper: pinta un grupo de botones sobre un control oculto que sigue
    siendo la fuente de verdad, para no tocar el resto de la lógica */
-function grupoOpciones(cajaId, control, opciones, pasoPropio){
+function grupoOpciones(cajaId, control, opciones, pasoPropio, alElegir){
   var caja=$(cajaId), botones=[];
   opciones.forEach(function(o){
     var b=document.createElement("button");
@@ -1327,6 +1324,7 @@ function grupoOpciones(cajaId, control, opciones, pasoPropio){
     b.setAttribute("aria-pressed","false");
     b.addEventListener("click",function(){
       control.value=o.v;
+      if(alElegir) alElegir(String(o.v));
       sincronizarOpciones();
       update();
       if(step===pasoPropio) goStep(step+1);
@@ -1335,29 +1333,8 @@ function grupoOpciones(cajaId, control, opciones, pasoPropio){
   });
   return function(){
     for(var i=0;i<opciones.length;i++){
-      botones[i].setAttribute("aria-pressed", String(+control.value)===String(opciones[i].v) ? "true":"false");
+      botones[i].setAttribute("aria-pressed", control.value!=="" && String(control.value)===String(opciones[i].v) ? "true":"false");
     }
-  };
-}
-/* Sí / No sobre una casilla oculta */
-function grupoSiNo(cajaId, chk, pasoPropio, alElegir){
-  var caja=$(cajaId), bs=[];
-  [{v:true,txt:"Sí"},{v:false,txt:"No"}].forEach(function(o){
-    var b=document.createElement("button");
-    b.className="opt"; b.type="button"; b.textContent=o.txt;
-    b.setAttribute("aria-pressed","false");
-    b.addEventListener("click",function(){
-      chk.checked=o.v;
-      if(alElegir) alElegir(o.v);
-      sincronizarOpciones();
-      update();
-      if(step===pasoPropio) goStep(siguientePaso(step,1));
-    });
-    caja.appendChild(b); bs.push(b);
-  });
-  return function(){
-    bs[0].setAttribute("aria-pressed", chk.checked?"true":"false");
-    bs[1].setAttribute("aria-pressed", chk.checked?"false":"true");
   };
 }
 var sincronizadores=[];
@@ -1416,16 +1393,21 @@ var GRUPOS_TONO=[
   });
 })();
 
+sincronizadores.push(grupoOpciones("optLooks", el.looks, [
+  {v:0,txt:"No importa"},{v:1,txt:"Medio feo o mejor"},{v:2,txt:"Normal o mejor"},
+  {v:3,txt:"Agradable o mejor"},{v:4,txt:"Solo el top 20%"}
+], 13));
 sincronizadores.push(grupoOpciones("optCuerpo", el.cuerpo, [
-  {v:0,txt:"Como sea"},{v:1,txt:"Delgado o normal"},
-  {v:2,txt:"Sin obesidad"},{v:3,txt:"Con músculo"}
+  {v:0,txt:"Puede ser obeso"},{v:1,txt:"Delgado o normal"},{v:2,txt:"Fitness"}
 ], 11));
-sincronizadores.push(grupoSiNo("optAuto", el.auto, 8));
-sincronizadores.push(grupoSiNo("optSolo", el.solo, 9, function(v){
-  // si no encabeza su hogar, la vivienda propia no aplica
-  if(!v) el.casa.checked=false;
+/* "No importa" no es lo mismo que "que no tenga": el modelo sólo filtra
+   cuando la respuesta es Sí, así que se dice tal cual */
+var SI_NO=[{v:"1",txt:"Sí"},{v:"0",txt:"No importa"}];
+sincronizadores.push(grupoOpciones("optAuto", el.auto, SI_NO, 8));
+sincronizadores.push(grupoOpciones("optSolo", el.solo, SI_NO, 9, function(v){
+  if(v!=="1") el.casa.value="";     // sin hogar propio, la vivienda no aplica
 }));
-sincronizadores.push(grupoSiNo("optCasa", el.casa, 10));
+sincronizadores.push(grupoOpciones("optCasa", el.casa, SI_NO, 10));
 
 function syncEdoUI(){
   $("edoTodo").setAttribute("aria-pressed", +el.edo.value<0 ? "true":"false");
@@ -1483,8 +1465,6 @@ function syncGenderLabels(){
     return;
   }
   var C=COMBOS[combo], T=SEX[C.tgt], S=SEX[C.src];
-  $("looks").options[4].textContent = C.tgt===0 ? "Guapo — solo el top 20%" : "Guapa — solo el top 20%";
-  $("looks").options[0].textContent = C.tgt===0 ? "Muy feo — no importa" : "Muy fea — no importa";
   var mismo = C.src===C.tgt;
   $("oriNote").textContent = mismo
     ? "Ojo: sólo cuentan "+T.lbl+" que buscan "+T.lbl+". Según la ENDISEG 2021 del INEGI eso es apenas el "+
@@ -1493,10 +1473,10 @@ function syncGenderLabels(){
 }
 
 /* ================= navegación por pasos ================= */
-var STEP_TITLES=["Quién busca a quién","Dónde buscas","Edad","Estatura","Ingreso","Escolaridad","Trabajo","Auto","Vivienda","Casa propia","Complexión","Físico"];
+var STEP_TITLES=["Quién busca a quién","Dónde buscas","Edad","Estatura","Ingreso","Escolaridad","Trabajo","Auto","Vivienda","Casa propia","Complexión","Tono de piel","Atractivo"];
 var NSTEPS=STEP_TITLES.length, step=1, showAll=false;
 /* el paso de casa propia sólo existe si vive por su cuenta */
-function pasoActivo(n){ return n===10 ? el.solo.checked : true }
+function pasoActivo(n){ return n===10 ? el.solo.value==="1" : true }
 function pasosActivos(){ var a=[]; for(var i=1;i<=NSTEPS;i++) if(pasoActivo(i)) a.push(i); return a }
 function siguientePaso(desde,dir){
   var n=desde+dir;
@@ -1691,9 +1671,9 @@ function applyHash(){
   var flags=num(8,0,7,0), bits=num(10,0,2047,2047);
   el.edo.value=edo; el.edadMin.value=a1; el.edadMax.value=a2;
   el.est.value=num(4,150,200,150); el.ing.value=num(5,0,ING_STEPS.length-1,0);
-  el.edu.value=num(6,0,3,0); el.trab.value=num(7,0,3,0); el.looks.value=num(9,0,4,0); el.cuerpo.value=num(12,0,3,0);
-  el.auto.checked=!!(flags&1); el.casa.checked=!!(flags&2);
-  el.solo.checked=!!(flags&4);
+  el.edu.value=num(6,0,3,0); el.trab.value=num(7,0,3,0); el.looks.value=num(9,0,4,0)||""; el.cuerpo.value=num(12,0,2,0);
+  el.auto.value=(flags&1)?"1":""; el.casa.value=(flags&2)?"1":"";
+  el.solo.value=(flags&4)?"1":"";
   for(var k=0;k<11;k++){
     tonesOn[k]=!!(bits&(1<<k));
     tonesBox.children[k].setAttribute("aria-pressed",tonesOn[k]?"true":"false");
@@ -1737,8 +1717,8 @@ function readState(){
   var a1=+el.edadMin.value, a2=+el.edadMax.value;
   if(a1>a2){var tmp=a1;a1=a2;a2=tmp}
   return {edo:+el.edo.value, a1:a1, a2:a2, h:+el.est.value, inc:ING_STEPS[+el.ing.value],
-          edu:+el.edu.value, trab:+el.trab.value, auto:el.auto.checked, casa:el.casa.checked,
-          solo:el.solo.checked, looks:+el.looks.value, cuerpo:+el.cuerpo.value, tones:tonesOn.slice()};
+          edu:+el.edu.value, trab:+el.trab.value, auto:el.auto.value==="1", casa:el.casa.value==="1",
+          solo:el.solo.value==="1", looks:+el.looks.value, cuerpo:+el.cuerpo.value, tones:tonesOn.slice()};
 }
 function buildFilters(st){
   var all=st.tones.every(function(x){return x});
@@ -2167,8 +2147,8 @@ PRESETS.forEach(function(p){
 function applyState(v){
   if(combo<0) setCombo(0);      // un preset ya implica una elección
   el.edo.value=v.edo; el.edadMin.value=v.a1; el.edadMax.value=v.a2; el.est.value=v.h; el.ing.value=v.ing;
-  el.edu.value=v.edu; el.trab.value=v.trab; el.looks.value=v.looks||0; el.cuerpo.value=v.cuerpo||0;
-  el.auto.checked=!!v.auto; el.casa.checked=!!v.casa; el.solo.checked=!!v.solo;
+  el.edu.value=v.edu; el.trab.value=v.trab; el.looks.value=v.looks?String(v.looks):""; el.cuerpo.value=v.cuerpo?String(v.cuerpo):"";
+  el.auto.value=v.auto?"1":""; el.casa.value=v.casa?"1":""; el.solo.value=v.solo?"1":"";
   for(var k=0;k<11;k++){ tonesOn[k]=true; tonesBox.children[k].setAttribute("aria-pressed","true") }
   update();
 }
@@ -2201,8 +2181,7 @@ el.edadMin.addEventListener("input",function(){ clampEdad("min"); queue() });
 el.edadMax.addEventListener("input",function(){ clampEdad("max"); queue() });
 el.est.addEventListener("input",queue);
 el.edo.addEventListener("change",function(){ elegirEdo(+el.edo.value) });
-["edu","trab","looks"].forEach(function(id){ el[id].addEventListener("change",update) });
-["auto","casa","solo"].forEach(function(id){ el[id].addEventListener("change",update) });
+["edu","trab"].forEach(function(id){ el[id].addEventListener("change",update) });
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(){ setTimeout(update,60) });
 
 /* ================= infografía para compartir =================
@@ -2226,7 +2205,7 @@ function activeFilterList(st){
   if(st.auto) out.push("Auto propio");
   if(st.casa) out.push("Vivienda propia");
   if(st.solo) out.push("Vive por su cuenta");
-  if(st.cuerpo>0) out.push("Complexión: "+["","delgado o normal","sin obesidad","con músculo"][st.cuerpo]);
+  if(st.cuerpo>0) out.push("Complexión: "+["","delgado o normal","fitness"][st.cuerpo]);
   if(st.looks>0) out.push("Atractivo: "+LOOKS_LBL[st.looks]);
   if(!st.tones.every(function(x){return x})) out.push(st.tones.filter(Boolean).length+"/11 tonos de piel");
   return out;
