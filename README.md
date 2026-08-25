@@ -1,4 +1,4 @@
-# Uno de cada cuántos
+# Tierra llamando
 
 Calculadora demográfica: pon requisitos de pareja (edad, estatura, ingreso, escolaridad,
 trabajo, patrimonio, tono de piel, atractivo físico) y estima cuántos hombres de 18 a 70
