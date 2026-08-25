@@ -1531,6 +1531,9 @@ COMBOS.forEach(function(C,k){
 });
 function setCombo(k){
   combo=k;
+  // la estatura "por defecto" cambia según a quién buscas: no es lo mismo
+  // partir de 1.70 m para hombres que de 1.55 m para mujeres
+  if(k>=0) el.est.value = COMBOS[k].tgt===0 ? "170" : "155";
   for(var j=0;j<COMBOS.length;j++) whoBox.children[j].setAttribute("aria-pressed", j===k?"true":"false");
   syncGenderLabels();
 }
