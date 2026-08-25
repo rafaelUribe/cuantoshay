@@ -4,10 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="¿Cuánta gente en México cumple tus requisitos de pareja? Calculadora demográfica por estado con datos calibrados al INEGI.">
+<link rel="canonical" href="https://cuantoshay.netlify.app/">
+<meta name="theme-color" content="#ECEDF1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B0E15" media="(prefers-color-scheme: dark)">
 <meta property="og:title" content="Uno de cada cuántos">
 <meta property="og:description" content="Elige a quién buscas, pon tus requisitos y descubre cuánta gente en México los cumple de verdad.">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://cuantoshay.netlify.app/">
+<meta property="og:locale" content="es_MX">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Uno de cada cuántos">
+<meta name="twitter:description" content="Elige a quién buscas, pon tus requisitos y descubre cuánta gente en México los cumple de verdad.">
 <title>Uno de cada cuántos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -159,6 +166,26 @@ h1 em{font-family:"Newsreader",Georgia,serif; font-style:italic; font-weight:400
 .ver-mas{display:none}
 .mini-nota{display:none; margin:0}
 @media (max-width:900px){ .ver-mas{display:block} }
+
+/* al terminar el cuestionario, se guarda el resultado y sólo queda
+   la salida para volver a empezar: nada de formulario compitiendo con el número */
+.panel-done{display:none; padding:22px 18px; text-align:center}
+.panel-done-txt{margin:0 0 14px; font-family:"Newsreader",Georgia,serif; font-size:1rem; color:var(--ink-2)}
+.panel-done-btn{
+  font:inherit; font-family:"Archivo",sans-serif; font-size:15px; font-weight:700;
+  padding:14px 22px; cursor:pointer; width:100%; max-width:340px;
+  background:var(--accent); color:var(--accent-ink); border:1px solid var(--accent); border-radius:999px;
+  transition:filter .12s;
+}
+.panel-done-btn:hover{filter:brightness(1.08)}
+.panel-done-btn:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
+body.finished .panel-body,
+body.finished .step-bar,
+body.finished .step-nav,
+body.finished .all-toggle,
+body.finished .mini-nota,
+body.finished .panel-hd .reset{display:none}
+body.finished .panel-done{display:block}
 
 /* grupos de opciones: un toque elige y avanza */
 .opts{display:grid; grid-template-columns:1fr 1fr; gap:6px}
@@ -334,6 +361,13 @@ select:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
 }
 .compites b{display:block; font-family:"Archivo",sans-serif; font-size:1.45rem; font-weight:800;
   letter-spacing:-.025em; color:var(--teal); margin-bottom:2px; font-variant-numeric:tabular-nums}
+/* la etiqueta corta de qué tan dura está la competencia */
+.dif-tag{
+  display:inline-block; margin-bottom:6px; padding:3px 10px; border-radius:999px;
+  background:var(--surface); border:1px solid color-mix(in srgb, var(--teal) 45%, transparent);
+  color:var(--teal); font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:700;
+  letter-spacing:.02em;
+}
 @media (max-width:640px){ .compites{margin:0 18px 12px; padding:11px 13px; font-size:13px} }
 
 .culpable{
@@ -795,7 +829,7 @@ h3{
         <div class="label"><span>Complexión</span></div>
         <div class="opts opts-1" id="optCuerpo"></div>
         <input type="hidden" id="cuerpo" value="">
-        <p class="fine">El IMC lo mide la ENSANUT: en México cerca de 3 de cada 4 adultos tienen sobrepeso u obesidad. "Fitness" no lo mide nadie — se aproxima con quien hace ejercicio y tiene un IMC en rango atlético.</p>
+        <p class="fine">En México, cerca de 3 de cada 4 personas adultas tienen sobrepeso, así que no pedir nada aquí es lo más parecido a la población real. "Activo o fit" no es un dato oficial — se aproxima con quien hace ejercicio y mantiene un peso saludable para su estatura.</p>
       </div>
       </div>
 
@@ -828,6 +862,10 @@ h3{
     <button class="all-toggle" id="allToggle" type="button">Ver todos los filtros de una vez</button>
     <button class="all-toggle ver-mas" id="verMas" type="button">Ver el análisis completo</button>
     <p class="mini-nota">Modelo con cifras públicas del INEGI · no es un censo real</p>
+    <div class="panel-done" id="panelDone">
+      <p class="panel-done-txt">Ya viste tu resultado. Si quieres probar otra cosa, empieza otra vez.</p>
+      <button class="panel-done-btn" id="resetDone" type="button">Empezar de nuevo</button>
+    </div>
   </aside>
 
   <div class="result">
@@ -844,13 +882,13 @@ h3{
       </div>
     </div>
 
+    <div class="compites" id="compites" hidden></div>
+
     <div class="verdict" id="verdict" hidden>
       <p class="verdict-line" id="verdictLine"></p>
       <p class="verdict-cmp" id="verdictCmp"></p>
       <p class="culpable" id="culpable" hidden></p>
     </div>
-
-    <div class="compites" id="compites" hidden></div>
 
     <div class="dots">
       <canvas id="cv" width="1000" height="440" role="img" aria-label="Malla de 10,000 puntos donde se resaltan los que cumplen los requisitos"></canvas>
@@ -867,20 +905,20 @@ h3{
   </div>
 
   <main>
+    <div class="section">
+      <div class="section-hd">
+        <h3>Cuánta competencia tienes</h3>
+        <span class="section-note">Cuántos van tras las mismas personas que tú.</span>
+      </div>
+      <div class="card" id="market"></div>
+    </div>
+
     <div class="section" id="moveSection" hidden>
       <div class="section-hd">
         <h3>Tu mejor mercado</h3>
         <span class="section-note">Dónde tus requisitos pesan menos.</span>
       </div>
       <div class="card move" id="move"></div>
-    </div>
-
-    <div class="section">
-      <div class="section-hd">
-        <h3>El otro lado del mercado</h3>
-        <span class="section-note">Cuántas mujeres compiten por esos mismos hombres.</span>
-      </div>
-      <div class="card" id="market"></div>
     </div>
 
     <div class="section">
@@ -929,7 +967,7 @@ h3{
         <li><b>Vivienda propia</b> — la del hogar que encabeza; no cuenta la casa de sus papás. Por definición implica vivir por su cuenta, así que el modelo nunca genera dueños de casa viviendo con sus padres: si marcas los dos, el segundo ya no recorta nada.</li>
         <li><b>Tono de piel</b> — escala cromática de 11 tonos, el mismo tipo de instrumento que el INEGI usa en sus módulos de movilidad social y discriminación. Está aquí porque es un dato que el INEGI levanta y porque el resultado es justamente el punto: el filtro que la gente casi nunca dice en voz alta también tiene un número.</li>
         <li><b>Claros y morenos por estado</b> — los atajos "Claros" (tonos 1 a 4), "Medios" (5 a 7) y "Morenos" (8 a 11) agrupan la misma escala. La proporción de tonos claros no es igual en todo el país: en el modelo va de alrededor del 42% en Baja California y 40% en Nuevo León a cerca del 15% en Chiapas y Oaxaca, contra un 28% nacional. Ese gradiente norte-sur está tomado de las diferencias regionales que reportan los módulos del INEGI, no medido entidad por entidad, así que sirve para comparar estados entre sí y no como cifra oficial de cada uno.</li>
-        <li><b>Complexión</b> — sale del índice de masa corporal que mide la ENSANUT, donde cerca de 3 de cada 4 adultos en México tienen sobrepeso u obesidad; en el modelo son 75% de los hombres y 78% de las mujeres. La obesidad tampoco es pareja: va de alrededor del 42% en Campeche al 29% en Chiapas. <b>"Fitness" no es un dato</b>: el IMC no distingue músculo de grasa y nadie lo mide a nivel nacional, así que se aproxima con quien reporta hacer ejercicio y tiene un IMC entre 20 y 27.</li>
+        <li><b>Complexión</b> — sale del índice de masa corporal que mide la ENSANUT, donde cerca de 3 de cada 4 adultos en México tienen sobrepeso u obesidad; en el modelo son 75% de los hombres y 78% de las mujeres. La obesidad tampoco es pareja: va de alrededor del 42% en Campeche al 29% en Chiapas. <b>"Activo o fit" no es un dato</b>: el IMC no distingue músculo de grasa y nadie lo mide a nivel nacional, así que se aproxima con quien reporta hacer ejercicio y tiene un IMC entre 20 y 27.</li>
         <li><b>Atractivo físico</b> — a diferencia de todo lo demás, esto <em>no</em> es un dato del INEGI: nadie lo mide. Se modela como un rasgo al azar, con forma de campana, igual de repartido en todo el país y sin relación con el ingreso o la escolaridad de cada quien. Los cinco niveles del selector son, literalmente, los quintiles de esa campana: "guapo" es el 20% más alto, "agradable" el 40% más alto, y así.</li>
       </ul>
 
@@ -1140,7 +1178,7 @@ var FEMALE_RATIO=1.061;   // mujeres por cada hombre de 18 a 70, proporción nac
    Los cortes son los quintiles teóricos de una normal estándar. */
 var LOOKS_CUT=[-Infinity,-0.8416,-0.2533,0.2533,0.8416];
 /* complexión: IMC de la ENSANUT; el músculo no es medible, se aproxima */
-var CUERPO_LBL=["puede ser obeso","delgado o normal (IMC menor a 25)","fitness: hace ejercicio y con IMC atlético"];
+var CUERPO_LBL=["no importa","complexión delgada o normal","activo o fit (hace ejercicio, sin sobrepeso)"];
 function cumpleCuerpo(i,modo){
   if(modo===1) return pImc[i]<25;
   if(modo===2) return (pFlags[i]&16)!==0 && pImc[i]>=20 && pImc[i]<27;
@@ -1233,6 +1271,7 @@ for(sx=0;sx<2;sx++){
 }
 
 var pAge,pH,pInc,pEdu,pTone,pJob,pFlags,pSt,pLooks,pSex,pOri,pImc,idxBuf;
+var poblacionLista=false;   // false mientras build() sigue generando por cuadros
 
 /* qué tan claro es cada estado, según los tonos que genera el modelo */
 function calculaTonos(){
@@ -1247,60 +1286,83 @@ function calculaTonos(){
   rankBy("claro",true);
 }
 
-function build(){
+/* la generación se reparte en varios cuadros (requestAnimationFrame) para
+   no congelar el hilo principal 1.2 millones de iteraciones de un jalón:
+   en equipos lentos eso se sentía como que la página se trababa. El orden
+   de generación (sexo → entidad → individuo) no cambia, así que la
+   secuencia del generador pseudoaleatorio queda idéntica a la versión
+   síncrona; sólo se le dan respiros al navegador entre lotes. */
+function build(onDone){
   pAge=new Float32Array(N); pH=new Float32Array(N); pInc=new Float32Array(N);
   pEdu=new Uint8Array(N); pTone=new Uint8Array(N); pJob=new Uint8Array(N);
   pFlags=new Uint8Array(N); pSt=new Uint8Array(N); pLooks=new Float32Array(N);
   pSex=new Uint8Array(N); pOri=new Uint8Array(N); pImc=new Float32Array(N); idxBuf=new Int32Array(N);
-  var k=0;
-  for(var sex=0;sex<2;sex++){
-    var P=SEX[sex];
-    for(var si=0;si<NS;si++){
-      var S=STATES[si], samp=S["samp"+sex];
-      for(var c=0;c<samp;c++){
-        var b=AGE_BUCKETS[pickCum(ageCum,rnd())];
-        var age=b[0]+rnd()*(b[1]-b[0]);
-        var z=gauss();                                 // nivel socioeconómico latente
 
-        var edu=pickCum(P.eduCum(age), ncdf(0.70*z+0.714*gauss()+S.dEsc));
-        var tone=pickCum(TONE_CUM,     ncdf(-0.34*z+0.940*gauss()+S.dTon));
+  var jobs=[];
+  for(var sex=0;sex<2;sex++) for(var si=0;si<NS;si++) jobs.push({sex:sex, si:si, samp:STATES[si]["samp"+sex]});
+  var ji=0, ci=0, k=0;
+  var BUDGET_MS=12, big=$("big");
 
-        var job=0;
-        if(rnd()<P.ocup(age)+0.02*z){
-          job = (rnd()<logistic(logit(P.formal[edu])+0.25*z+S.oForm))?2:1;
-        }
-        var inc=0;
-        if(job>0){
-          var mu=Math.log(P.medIng[edu]*ageFactor(age)*(job===2?1.30:0.85)*S.mIng)+0.25*z;
-          inc=Math.exp(mu+0.62*gauss());
-        }
-        var incRef=Math.max(inc,1500)/9000;
-        var h=P.height(age)+S.dAlt+1.2*z+(sex===1?6.35:6.85)*gauss();
+  function generaUno(P,S,si,sex){
+    var b=AGE_BUCKETS[pickCum(ageCum,rnd())];
+    var age=b[0]+rnd()*(b[1]-b[0]);
+    var z=gauss();                                 // nivel socioeconómico latente
 
-        var f=0;
-        if(rnd()<logistic(P.autoInt+1.00*Math.log(incRef)+0.022*(age-35)+S.oAuto)) f|=1;
-        // primero se decide si encabeza su propio hogar; la vivienda propia
-        // se define como la del hogar que encabeza, así que vive dentro de eso:
-        // no puede ser dueño del hogar que encabeza y a la vez vivir con sus papás
-        if(rnd()<logistic(P.soloInt+0.075*(age-18)+0.35*Math.log(incRef))) f|=4;
-        if((f&4) && rnd()<logistic(P.casaInt+0.062*(age-18)+0.45*Math.log(incRef)+S.oCasa)) f|=2;
-        if(rnd()<P.availF(age)+S.dSol) f|=8;
+    var edu=pickCum(P.eduCum(age), ncdf(0.70*z+0.714*gauss()+S.dEsc));
+    var tone=pickCum(TONE_CUM,     ncdf(-0.34*z+0.940*gauss()+S.dTon));
 
-        pAge[k]=age; pH[k]=h; pInc[k]=inc; pEdu[k]=edu; pTone[k]=tone; pJob[k]=job;
-        pSt[k]=si; pSex[k]=sex;
-        pOri[k]=pickCum(P.oriCum,rnd());               // orientación sexual (ENDISEG 2021)
-        // IMC: lognormal calibrada a ENSANUT, sube con la edad y con la
-        // obesidad del estado. El ejercicio (MOPRADEF) baja el IMC.
-        var ejer = rnd() < P.pEjer + 0.05*z - 0.004*(age-35);
-        var imcAge = age<25 ? -0.055 : age<35 ? -0.018 : age<50 ? 0.012 : 0.022;
-        pImc[k]=Math.exp(P.imcMu + S.dImc + imcAge + (ejer?-0.045:0.015) + P.imcSd*gauss());
-        if(ejer) f|=16;
-        pFlags[k]=f;
-        pLooks[k]=gauss();                             // atractivo físico
-        k++;
-      }
+    var job=0;
+    if(rnd()<P.ocup(age)+0.02*z){
+      job = (rnd()<logistic(logit(P.formal[edu])+0.25*z+S.oForm))?2:1;
     }
+    var inc=0;
+    if(job>0){
+      var mu=Math.log(P.medIng[edu]*ageFactor(age)*(job===2?1.30:0.85)*S.mIng)+0.25*z;
+      inc=Math.exp(mu+0.62*gauss());
+    }
+    var incRef=Math.max(inc,1500)/9000;
+    var h=P.height(age)+S.dAlt+1.2*z+(sex===1?6.35:6.85)*gauss();
+
+    var f=0;
+    if(rnd()<logistic(P.autoInt+1.00*Math.log(incRef)+0.022*(age-35)+S.oAuto)) f|=1;
+    // primero se decide si encabeza su propio hogar; la vivienda propia
+    // se define como la del hogar que encabeza, así que vive dentro de eso:
+    // no puede ser dueño del hogar que encabeza y a la vez vivir con sus papás
+    if(rnd()<logistic(P.soloInt+0.075*(age-18)+0.35*Math.log(incRef))) f|=4;
+    if((f&4) && rnd()<logistic(P.casaInt+0.062*(age-18)+0.45*Math.log(incRef)+S.oCasa)) f|=2;
+    if(rnd()<P.availF(age)+S.dSol) f|=8;
+
+    pAge[k]=age; pH[k]=h; pInc[k]=inc; pEdu[k]=edu; pTone[k]=tone; pJob[k]=job;
+    pSt[k]=si; pSex[k]=sex;
+    pOri[k]=pickCum(P.oriCum,rnd());               // orientación sexual (ENDISEG 2021)
+    // IMC: lognormal calibrada a ENSANUT, sube con la edad y con la
+    // obesidad del estado. El ejercicio (MOPRADEF) baja el IMC.
+    var ejer = rnd() < P.pEjer + 0.05*z - 0.004*(age-35);
+    var imcAge = age<25 ? -0.055 : age<35 ? -0.018 : age<50 ? 0.012 : 0.022;
+    pImc[k]=Math.exp(P.imcMu + S.dImc + imcAge + (ejer?-0.045:0.015) + P.imcSd*gauss());
+    if(ejer) f|=16;
+    pFlags[k]=f;
+    pLooks[k]=gauss();                             // atractivo físico
   }
+
+  function chunk(){
+    var t0=performance.now();
+    while(ji<jobs.length){
+      var job=jobs[ji], P=SEX[job.sex], S=STATES[job.si];
+      while(ci<job.samp){
+        generaUno(P,S,job.si,job.sex);
+        k++; ci++;
+        if((k&2047)===0 && performance.now()-t0>BUDGET_MS){
+          if(big) big.textContent="Generando 1.2 millones de perfiles… "+Math.round(100*k/N)+"%";
+          requestAnimationFrame(chunk);
+          return;
+        }
+      }
+      ji++; ci=0;
+    }
+    if(onDone) onDone();
+  }
+  chunk();
 }
 
 /* ================= controles ================= */
@@ -1412,7 +1474,7 @@ sincronizadores.push(grupoOpciones("optLooks", el.looks, [
   {v:3,txt:"Agradable o mejor"},{v:4,txt:"Solo el top 20%"}
 ], 13));
 sincronizadores.push(grupoOpciones("optCuerpo", el.cuerpo, [
-  {v:0,txt:"Puede ser obeso"},{v:1,txt:"Delgado o normal"},{v:2,txt:"Fitness"}
+  {v:0,txt:"No importa"},{v:1,txt:"Delgado o normal"},{v:2,txt:"Activo o fit"}
 ], 11));
 /* "No importa" no es lo mismo que "que no tenga": el modelo sólo filtra
    cuando la respuesta es Sí, así que se dice tal cual */
@@ -1558,11 +1620,13 @@ $("verMas").addEventListener("click",alternarAnalisis);
 
 $("stepNext").addEventListener("click",function(){
   if(step<NSTEPS){ goStep(siguientePaso(step,1)); return }
-  // terminaste los pasos: aquí sí se abre todo
+  // terminaste los pasos: se cierra el cuestionario y sólo queda el
+  // resultado y la salida para volver a empezar — nada de formulario estorbando
   revelar();
+  document.body.classList.add("finished");
   setTimeout(function(){
-    var m=document.querySelector("main");
-    if(m&&m.scrollIntoView) m.scrollIntoView({behavior: reduce?"auto":"smooth", block:"start"});
+    var r=document.querySelector(".result");
+    if(r&&r.scrollIntoView) r.scrollIntoView({behavior: reduce?"auto":"smooth", block:"start"});
   },40);
 });
 /* en escritorio no hay nada que esconder; al volver al celular se
@@ -1664,6 +1728,16 @@ function verdictFor(n,scopeName,si){
     return ["Llenarían "+big[1]+" "+veces+" veces.","Ya es un mercado de verdad."];
   }
   return ["Prácticamente cualquiera.","Con estos filtros casi no estás filtrando."];
+}
+/* qué tan dura está la competencia, en palabras y no en índices:
+   "razón" = rivales de tu mismo género por cada persona que sí califica */
+function dificultadFor(razon){
+  if(razon===null) return {tag:"",txt:""};
+  if(razon>=8)   return {tag:"Muy difícil",   txt:"Va a costarte encontrarlo: hay poca oferta y mucha gente detrás de ella."};
+  if(razon>=3)   return {tag:"Difícil",       txt:"Toca competir en serio: no eres el único que busca esto."};
+  if(razon>=1.2) return {tag:"Se puede",      txt:"Está parejo: hay para todos, pero no sobra."};
+  if(razon>=0.4) return {tag:"Tienes mercado",txt:"La cancha está más a tu favor que en contra."};
+  return {tag:"Mercado de sobra",txt:"Casi no hay quien te la dispute."};
 }
 
 /* ================= estado en la URL ================= */
@@ -1860,7 +1934,7 @@ function ecoCard(si){
       '<span class="eco-pop">42.3 M de hombres de 18 a 70 años · 32 entidades</span></div>'+
       '<div class="eco-grid">'+
       ecoCell("PIB per cápita","$"+Math.round(BAR.pib)+" mil",null,0.5,"promedio nacional")+
-      ecoCell("Ingreso laboral","índice 100",null,0.5,"la referencia de todos los estados")+
+      ecoCell("Ingreso laboral","Promedio del país",null,0.5,"la referencia para comparar entidades")+
       ecoCell("Informalidad laboral",(BAR.inf*100).toFixed(0)+"%",null,BAR.inf,"de los ocupados, sin seguridad social")+
       ecoCell("Escolaridad promedio",BAR.esc.toFixed(1)+" años",null,BAR.esc/12,"población de 15 años y más")+
       ecoCell("Viviendas con auto",(BAR.auto*100).toFixed(0)+"%",null,BAR.auto,"promedio del país")+
@@ -1879,7 +1953,7 @@ function ecoCard(si){
     '<span class="eco-pop">'+fmt(S.men)+' hombres de 18 a 70 · '+(100*S.men/TOTAL).toFixed(1)+'% del país · '+S.r_men+'° más poblado</span></div>'+
     '<div class="eco-grid">'+
     ecoCell("PIB per cápita","$"+S.pib+" mil",S.r_pib,S.pib/pibMax,pctVs(S.pib,BAR.pib)+" vs. la media nacional")+
-    ecoCell("Ingreso laboral","índice "+Math.round(100*S.ing/BAR.ing),S.r_ing,(S.ing/BAR.ing)/2,pctVs(S.ing,BAR.ing)+" que el promedio del país")+
+    ecoCell("Ingreso laboral",pctVs(S.ing,BAR.ing),S.r_ing,(S.ing/BAR.ing)/2,"que el promedio del país")+
     ecoCell("Informalidad laboral",(S.inf*100).toFixed(0)+"%",S.r_inf,S.inf,"nacional "+(BAR.inf*100).toFixed(0)+"%")+
     ecoCell("Escolaridad promedio",S.esc.toFixed(1)+" años",S.r_esc,S.esc/12,"nacional "+BAR.esc.toFixed(1)+" años")+
     ecoCell("Viviendas con auto",(S.auto*100).toFixed(0)+"%",S.r_auto,S.auto,"nacional "+(BAR.auto*100).toFixed(0)+"%")+
@@ -1925,6 +1999,16 @@ function update(){
   var st=readState();
   paintEdad(); syncEdoUI(); sincronizarOpciones();
   if(combo<0){ esperandoEleccion(); return }
+  // la población sintética se genera en varios cuadros (ver build()); si el
+  // usuario ya eligió quién busca a quién mientras aún se arma, no calcules
+  // sobre arrays a medio llenar: espera a que "onDone" vuelva a llamar update()
+  if(!poblacionLista){
+    $("kicker").textContent="Un momento";
+    var b=$("big"); b.classList.add("loading");
+    $("bigsub").textContent="La simulación se sigue armando en tu navegador.";
+    $("stepNext").disabled=true;
+    return;
+  }
   $("v-edad").textContent=st.a1+" – "+st.a2+" años";
   $("v-est").textContent=(st.h/100).toFixed(2)+" m";
   $("estNota").textContent = st.h<=140
@@ -2000,20 +2084,22 @@ function update(){
   if(people<1){ cbox.hidden=true }
   else{
     var propio=SEX[C.src].lbl, buscado=(C.tgt===0?"hombre":"mujer");
+    var dif=dificultadFor(razon);
+    var tagHtml=dif.tag?'<span class="dif-tag">'+dif.tag+'</span>':"";
     if(razon>=1){
       var nRiv = razon<10 ? razon.toFixed(1).replace(/\.0$/,"") : Math.round(razon).toLocaleString("es-MX");
       var palabra = (nRiv==="1") ? (C.src===0?"hombre":"mujer") : propio;
-      cbox.innerHTML="<b>Compites contra "+nRiv+" "+palabra+"</b>"+
-                     "por cada "+buscado+" que cumple todo lo que pediste, en "+scopeName+".";
+      cbox.innerHTML=tagHtml+"<b>Compites contra "+nRiv+" "+palabra+"</b>"+
+                     "por cada "+buscado+" que cumple todo lo que pediste, en "+scopeName+". "+dif.txt;
     } else {
-      cbox.innerHTML="<b>Hay "+(1/razon<10?(1/razon).toFixed(1):Math.round(1/razon).toLocaleString("es-MX"))+" que cumplen por cada rival</b>"+
-                     "Aquí la oferta te gana: hay más "+SEX[C.tgt].lbl+" que cumplen que "+propio+" buscándo"+(C.tgt===0?"los":"las")+".";
+      cbox.innerHTML=tagHtml+"<b>Hay "+(1/razon<10?(1/razon).toFixed(1):Math.round(1/razon).toLocaleString("es-MX"))+" que cumplen por cada rival</b>"+
+                     "Aquí la oferta te gana: hay más "+SEX[C.tgt].lbl+" que cumplen que "+propio+" buscándo"+(C.tgt===0?"los":"las")+". "+dif.txt;
     }
     cbox.hidden=false;
   }
 
   ecoCard(st.edo);
-  // el índice "vs. país" siempre se compara contra la media nacional,
+  // el porcentaje "vs. promedio" siempre se compara contra la media nacional,
   // aunque estés viendo un estado en particular
   renderStates(byState,st.edo,nat.weight/TGT.total,nat.cases);
   renderFunnel(res.rows,st,scopeName,scopeTotal,oriBase,libreBase);
@@ -2072,17 +2158,19 @@ function renderStates(byState,sel,natShare,natCases){
   rows.sort(function(a,b){return b.sh-a.sh});
   var top=rows.length?rows[0].sh:0;
   renderMove(rows,sel,natShare,natCases);
+  var TGTn=SEX[COMBOS[combo].tgt].lbl;
   var html='<div class="srow head"><span></span><span>Entidad</span><span class="snum">Cumplen</span>'+
-           '<span class="sbarhd">% de sus hombres</span><span class="sidx">vs. país</span></div>';
+           '<span class="sbarhd">% de sus '+TGTn+'</span><span class="sidx">vs. promedio</span></div>';
   rows.forEach(function(R,pos){
-    var idx = natShare>0 ? Math.round(100*R.sh/natShare) : 0;
-    var cls = idx>=100?"up":"down";
+    // porcentaje sobre el promedio nacional, no un índice base 100 (confundía)
+    var pct = natShare>0 ? Math.round(100*(R.sh/natShare-1)) : 0;
+    var cls = pct>=0?"up":"down";
     html+='<div class="srow'+(R.k===sel?" on":"")+'" data-k="'+R.k+'" role="button" tabindex="0">'+
           '<span class="spos">'+(pos+1)+'</span>'+
           '<span class="sname">'+R.n+'</span>'+
           '<span class="snum">'+(R.men<1?"—":fmt(R.men))+'</span>'+
           '<span class="sbar"><i style="width:'+(top>0?Math.max(2,100*R.sh/top):0).toFixed(1)+'%"></i></span>'+
-          '<span class="sidx '+cls+'">'+(natShare>0?idx:"—")+'</span></div>';
+          '<span class="sidx '+cls+'">'+(natShare>0?(pct>=0?"+":"")+pct+"%":"—")+'</span></div>';
   });
   var box=$("states"); box.innerHTML=html;
   box.querySelectorAll(".srow[data-k]").forEach(function(node){
@@ -2114,13 +2202,17 @@ function renderMove(rows,sel,natShare,natCases){
   else if(ratio>=1.6) why="Ahí tus requisitos pesan "+ratio.toFixed(1)+" veces menos que en el promedio del país. Es la diferencia entre su economía y la del resto.";
   else if(ratio>=1.15) why="Sale mejor que el promedio nacional, aunque sin una diferencia dramática.";
   else why="Aunque encabeza la lista, casi no se despega del promedio: estos filtros pegan parejo en todo el país.";
+  // porcentaje de mejora sobre el promedio nacional: el índice "132 de 100"
+  // confundía a quien no está acostumbrado a números base 100
+  var mejorPct=Math.round((ratio-1)*100);
+  var statTxt = mejorPct<=0 ? "Igual" : "+"+mejorPct+"%";
   $("move").innerHTML=
     '<div class="move-main">'+
       '<p class="move-kick">'+(sel===best.k?"Estás en el mejor lugar":"Deberías mudarte a")+'</p>'+
       '<p class="move-name">'+best.n+'</p>'+
       '<p class="move-why">'+why+'</p>'+
     '</div>'+
-    '<div class="move-stat"><b>'+Math.round(100*ratio)+'</b><span>índice vs. país (100 = promedio)</span></div>';
+    '<div class="move-stat"><b>'+statTxt+'</b><span>más fácil que el promedio del país</span></div>';
 }
 
 function renderFunnel(rows,st,scopeName,scopeTotal,oriBase,libreBase){
@@ -2193,6 +2285,7 @@ function empezarDeNuevo(){
   valorAsentado=null; $("delta").hidden=true;   // el contador de cambios arranca limpio
   revelacionManual=false;
   document.body.classList.remove("revealed");
+  document.body.classList.remove("finished");
   $("verMas").textContent="Ver el análisis completo";
   syncRevealed();
   goStep(1);
@@ -2200,6 +2293,7 @@ function empezarDeNuevo(){
 }
 $("reset").addEventListener("click",empezarDeNuevo);
 $("reiniciar").addEventListener("click",empezarDeNuevo);
+$("resetDone").addEventListener("click",empezarDeNuevo);
 
 /* ================= eventos ================= */
 var pending=false;
@@ -2239,7 +2333,7 @@ function activeFilterList(st){
   if(st.auto) out.push("Auto propio");
   if(st.casa) out.push("Vivienda propia");
   if(st.solo) out.push("Vive por su cuenta");
-  if(st.cuerpo>0) out.push("Complexión: "+["","delgado o normal","fitness"][st.cuerpo]);
+  if(st.cuerpo>0) out.push("Complexión: "+["","delgado o normal","activo o fit"][st.cuerpo]);
   if(st.looks>0) out.push("Atractivo: "+LOOKS_LBL[st.looks]);
   if(!st.tones.every(function(x){return x})) out.push(st.tones.filter(Boolean).length+"/11 tonos de piel");
   return out;
@@ -2415,7 +2509,7 @@ setTimeout(function(){
   try{ localStorage.removeItem("cuantoshay.v1") }catch(e){}
   applyHash();   // sólo una liga compartida define el estado inicial
   syncGenderLabels(); goStep(1); syncRevealed();
-  build(); calculaTonos(); update();
+  build(function(){ poblacionLista=true; calculaTonos(); update() });
 },40);
 window.addEventListener("hashchange",function(){ if(applyHash()) update() });
 })();
