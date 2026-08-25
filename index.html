@@ -658,38 +658,38 @@ h3{
         <div class="dual">
           <div class="dual-track"></div>
           <div class="dual-fill" id="edadFill"></div>
-          <input type="range" id="edadMin" min="18" max="70" value="25" aria-label="Edad mínima">
-          <input type="range" id="edadMax" min="18" max="70" value="40" aria-label="Edad máxima">
+          <input type="range" id="edadMin" min="18" max="70" value="18" aria-label="Edad mínima">
+          <input type="range" id="edadMax" min="18" max="70" value="70" aria-label="Edad máxima">
         </div>
       </div>
 
       <div class="field">
         <div class="label"><span>Estatura mínima</span><span class="val" id="v-est">1.75 m</span></div>
-        <input type="range" id="est" min="140" max="200" step="1" value="175" aria-label="Estatura mínima en centímetros">
+        <input type="range" id="est" min="140" max="200" step="1" value="140" aria-label="Estatura mínima en centímetros">
       </div>
       </div>
 
       <div class="stepgroup" data-step="4">
       <div class="field">
         <div class="label"><span>Ingreso mensual mínimo</span><span class="val" id="v-ing">$20,000</span></div>
-        <input type="range" id="ing" min="0" max="14" step="1" value="8" aria-label="Ingreso mensual mínimo">
+        <input type="range" id="ing" min="0" max="14" step="1" value="0" aria-label="Ingreso mensual mínimo">
       </div>
 
       <div class="field">
         <div class="label"><span>Escolaridad mínima</span></div>
         <select id="edu">
-          <option value="0">Cualquiera</option>
+          <option value="0" selected>Cualquiera</option>
           <option value="1">Secundaria terminada</option>
           <option value="2">Preparatoria o técnico</option>
-          <option value="3" selected>Licenciatura o más</option>
+          <option value="3">Licenciatura o más</option>
         </select>
       </div>
 
       <div class="field">
         <div class="label"><span>Situación laboral</span></div>
         <select id="trab">
-          <option value="0">Cualquiera</option>
-          <option value="1" selected>Que trabaje</option>
+          <option value="0" selected>Cualquiera</option>
+          <option value="1">Que trabaje</option>
           <option value="2">Empleo formal, con prestaciones</option>
           <option value="3">Profesionista con empleo formal</option>
         </select>
@@ -700,10 +700,9 @@ h3{
       <div class="field">
         <div class="label"><span>Patrimonio y vivienda</span></div>
         <div class="checks">
-          <label class="chk"><input type="checkbox" id="auto" checked><span id="lbl-auto">Tiene auto propio</span></label>
+          <label class="chk"><input type="checkbox" id="auto"><span id="lbl-auto">Tiene auto propio</span></label>
           <label class="chk"><input type="checkbox" id="casa"><span id="lbl-casa">Tiene vivienda propia</span></label>
-          <label class="chk"><input type="checkbox" id="solo" checked><span id="lbl-solo">Vive por su cuenta, no con sus papás</span></label>
-          <label class="chk"><input type="checkbox" id="libre" checked><span id="lbl-libre">Está sin pareja</span></label>
+          <label class="chk"><input type="checkbox" id="solo"><span id="lbl-solo">Vive por su cuenta, no con sus papás</span></label>
         </div>
       </div>
       </div>
@@ -718,11 +717,11 @@ h3{
       <div class="field">
         <div class="label"><span>Atractivo físico mínimo</span></div>
         <select id="looks">
-          <option value="0">Muy feo — no importa</option>
+          <option value="0" selected>Muy feo — no importa</option>
           <option value="1">Medio feo o mejor</option>
           <option value="2">Normal, o equis</option>
           <option value="3">Agradable</option>
-          <option value="4" selected>Guapo — solo el top 20%</option>
+          <option value="4">Guapo — solo el top 20%</option>
         </select>
         <p class="fine">Rasgo simulado como una curva normal: el INEGI no mide esto, nadie lo mide. Sirve para ver el efecto, no como dato real.</p>
       </div>
@@ -829,10 +828,10 @@ h3{
 
       <h4>Qué significa cada filtro</h4>
       <ul>
-        <li><b>Sin pareja</b> — soltero, separado, divorciado o viudo. No implica que esté buscando.</li>
+        <li><b>Sin pareja</b> — soltero, separado, divorciado o viudo. Se aplica siempre, antes que cualquier requisito tuyo: buscas entre quienes están disponibles. No implica que estén buscando.</li>
         <li><b>Que trabaje</b> — población ocupada. <b>Formal</b> = con acceso a seguridad social por su trabajo; en el país cerca del 54% de los ocupados está en la informalidad, pero eso va del 36% al 80% según el estado.</li>
         <li><b>Ingreso</b> — ingreso mensual por su trabajo, en pesos de 2025.</li>
-        <li><b>Vivienda propia</b> — a su nombre o del hogar que encabeza; no cuenta la casa de sus papás.</li>
+        <li><b>Vivienda propia</b> — la del hogar que encabeza; no cuenta la casa de sus papás. Por definición implica vivir por su cuenta, así que el modelo nunca genera dueños de casa viviendo con sus padres: si marcas los dos, el segundo ya no recorta nada.</li>
         <li><b>Tono de piel</b> — escala cromática de 11 tonos, el mismo tipo de instrumento que el INEGI usa en sus módulos de movilidad social y discriminación. Está aquí porque es un dato que el INEGI levanta y porque el resultado es justamente el punto: el filtro que la gente casi nunca dice en voz alta también tiene un número.</li>
         <li><b>Atractivo físico</b> — a diferencia de todo lo demás, esto <em>no</em> es un dato del INEGI: nadie lo mide. Se modela como un rasgo al azar, con forma de campana, igual de repartido en todo el país y sin relación con el ingreso o la escolaridad de cada quien. Los cinco niveles del selector son, literalmente, los quintiles de esa campana: "guapo" es el 20% más alto, "agradable" el 40% más alto, y así.</li>
       </ul>
@@ -1047,7 +1046,7 @@ var SEX=[
    ocup:function(a){ if(a<25)return .64; if(a<55)return .93; if(a<65)return .81; return .58 },
    formal:[.28,.38,.52,.70],
    medIng:[6200,7600,9200,15500],
-   autoInt:-1.10, casaInt:-2.30, soloInt:-2.20,
+   autoInt:-1.10, casaInt:-0.30, soloInt:-2.20,
    ori:[.955,.027,.018]
  },
  { lbl:"mujeres", one:"mujer", art:"una", them:"ellas",
@@ -1060,7 +1059,7 @@ var SEX=[
    ocup:function(a){ if(a<25)return .40; if(a<55)return .57; if(a<65)return .40; return .22 },
    formal:[.26,.38,.55,.72],
    medIng:[5300,6400,7900,13200],
-   autoInt:-1.75, casaInt:-2.45, soloInt:-2.05,
+   autoInt:-1.75, casaInt:-0.40, soloInt:-2.05,
    ori:[.951,.040,.009]
  }
 ];
@@ -1144,8 +1143,11 @@ function build(){
 
         var f=0;
         if(rnd()<logistic(P.autoInt+1.00*Math.log(incRef)+0.022*(age-35)+S.oAuto)) f|=1;
-        if(rnd()<logistic(P.casaInt+0.062*(age-18)+0.45*Math.log(incRef)+S.oCasa)) f|=2;
-        if(rnd()<logistic(P.soloInt+0.075*(age-18)+0.35*Math.log(incRef)))         f|=4;
+        // primero se decide si encabeza su propio hogar; la vivienda propia
+        // se define como la del hogar que encabeza, así que vive dentro de eso:
+        // no puede ser dueño del hogar que encabeza y a la vez vivir con sus papás
+        if(rnd()<logistic(P.soloInt+0.075*(age-18)+0.35*Math.log(incRef))) f|=4;
+        if((f&4) && rnd()<logistic(P.casaInt+0.062*(age-18)+0.45*Math.log(incRef)+S.oCasa)) f|=2;
         if(rnd()<P.availF(age)+S.dSol) f|=8;
 
         pAge[k]=age; pH[k]=h; pInc[k]=inc; pEdu[k]=edu; pTone[k]=tone; pJob[k]=job;
@@ -1164,7 +1166,7 @@ var EDU_LBL=["Cualquiera","Secundaria terminada","Preparatoria o técnico","Lice
 var TRAB_LBL=["Cualquiera","Que trabaje","Empleo formal","Profesionista con empleo formal"];
 var $=function(id){return document.getElementById(id)};
 var el={edo:$("edo"),edadMin:$("edadMin"),edadMax:$("edadMax"),est:$("est"),ing:$("ing"),edu:$("edu"),
-        trab:$("trab"),auto:$("auto"),casa:$("casa"),solo:$("solo"),libre:$("libre"),looks:$("looks")};
+        trab:$("trab"),auto:$("auto"),casa:$("casa"),solo:$("solo"),looks:$("looks")};
 var tonesOn=[1,1,1,1,1,1,1,1,1,1,1].map(Boolean);
 
 STATES.forEach(function(S,k){
@@ -1222,7 +1224,6 @@ function syncGenderLabels(){
   $("lbl-auto").textContent="Tiene auto propio";
   $("lbl-casa").textContent="Tiene vivienda propia";
   $("lbl-solo").textContent="Vive por su cuenta, no con sus papás";
-  $("lbl-libre").textContent="Está sin pareja";
   $("looks").options[4].textContent = C.tgt===0 ? "Guapo — solo el top 20%" : "Guapa — solo el top 20%";
   $("looks").options[0].textContent = C.tgt===0 ? "Muy feo — no importa" : "Muy fea — no importa";
   var mismo = C.src===C.tgt;
@@ -1312,21 +1313,6 @@ $("allToggle").addEventListener("click",function(){
   if(!showAll) goStep(step);
 });
 
-/* ================= memoria local =================
-   guardamos sólo lo que no cambia entre sesiones: estado, género y a quién buscas */
-var LSKEY="cuantoshay.v1";
-function savePrefs(){
-  try{ localStorage.setItem(LSKEY, JSON.stringify({combo:combo, edo:+el.edo.value})) }catch(e){}
-}
-function loadPrefs(){
-  try{
-    var raw=localStorage.getItem(LSKEY); if(!raw) return false;
-    var p=JSON.parse(raw);
-    if(typeof p.combo==="number" && p.combo>=0 && p.combo<COMBOS.length) setCombo(p.combo);
-    if(typeof p.edo==="number" && p.edo>=-1 && p.edo<NS) el.edo.value=p.edo;
-    return true;
-  }catch(e){ return false }
-}
 
 /* ================= cuánto costó el último filtro =================
    Se espera a que el número se asiente para no parpadear mientras
@@ -1364,14 +1350,25 @@ function registrarCambio(nuevo){
 
 /* ================= veredicto y escala humana ================= */
 var CANONICAL="https://cuantoshay.netlify.app";
-/* el veredicto usa los recintos del estado que estés viendo */
+/* Para números chicos, cosas que cualquiera dimensiona sin pensar;
+   de ahí para arriba, los recintos del estado que estés viendo. */
+var COTIDIANO=[
+ [4,   "un Uber",                 "Y todavía sobra el lugar de adelante."],
+ [10,  "una mesa de restaurante", "Una sola mesa. Para todos los que cumplen."],
+ [16,  "un elevador",             "Y sin pasarse del límite de peso."],
+ [35,  "un salón de clases",      "Todos los que cumplen, en un solo salón."],
+ [45,  "un autobús",              "Un camión, y todavía con asientos vacíos."],
+ [70,  "una cafetería",           "Una tarde ahí y ya los conociste a todos."],
+ [170, "un vagón del Metro",      "Y todavía irías sentada."],
+ [250, "una sala de cine",        "Una función, todos adentro."],
+ [400, "un salón de fiestas",     "Los que alcanzan para una boda mediana."]
+];
 function verdictFor(n,scopeName,si){
+  if(n<1) return ["No existe. Literalmente.","Acabas de describir a alguien que no existe en "+scopeName+"."];
+  for(var c=0;c<COTIDIANO.length;c++){
+    if(n<COTIDIANO[c][0]) return ["Caben todos en "+COTIDIANO[c][1]+".", COTIDIANO[c][2]];
+  }
   var V=(si>=0 && STATES[si].ven) ? STATES[si].ven : VEN_NAC;
-  if(n<1)   return ["No existe. Literalmente.","Acabas de describir a alguien que no existe en "+scopeName+"."];
-  if(n<5)   return ["Caben todos en un Uber.","Y todavía sobra el lugar de adelante."];
-  if(n<15)  return ["Caben en una fiesta en tu casa.","De las chiquitas. En la sala."];
-  if(n<45)  return ["Son menos que tu salón de la prepa.","Todos los que cumplen en "+scopeName+", en un solo salón."];
-  if(n<180) return ["Caben todos en un camión.","Y sobrarían asientos."];
   for(var k=0;k<V.length;k++){
     if(n<V[k][0]){
       var faltan=Math.round(V[k][0]-n);
@@ -1391,13 +1388,13 @@ function verdictFor(n,scopeName,si){
 
 /* ================= estado en la URL ================= */
 function stateToHash(st){
-  var flags=(st.auto?1:0)|(st.casa?2:0)|(st.solo?4:0)|(st.libre?8:0);
+  var flags=(st.auto?1:0)|(st.casa?2:0)|(st.solo?4:0);
   var bits=0; for(var k=0;k<11;k++) if(st.tones[k]) bits|=(1<<k);
-  return "#2."+[st.edo,st.a1,st.a2,st.h,+el.ing.value,st.edu,st.trab,flags,st.looks,bits,combo].join(".");
+  return "#3."+[st.edo,st.a1,st.a2,st.h,+el.ing.value,st.edu,st.trab,flags,st.looks,bits,combo].join(".");
 }
 function applyHash(){
   var h=(location.hash||"").replace(/^#/,"");
-  if(h.indexOf("2.")!==0) return false;
+  if(h.indexOf("3.")!==0) return false;
   var p=h.split(".");
   if(p.length<12) return false;
   var cb=parseInt(p[11],10);
@@ -1405,12 +1402,12 @@ function applyHash(){
   var num=function(i,lo,hi,dflt){ var v=parseInt(p[i],10); return (isNaN(v)||v<lo||v>hi)?dflt:v };
   var edo=num(1,-1,NS-1,-1), a1=num(2,18,70,18), a2=num(3,18,70,70);
   if(a1>a2){var t=a1;a1=a2;a2=t}
-  var flags=num(8,0,15,0), bits=num(10,0,2047,2047);
+  var flags=num(8,0,7,0), bits=num(10,0,2047,2047);
   el.edo.value=edo; el.edadMin.value=a1; el.edadMax.value=a2;
   el.est.value=num(4,150,200,150); el.ing.value=num(5,0,ING_STEPS.length-1,0);
   el.edu.value=num(6,0,3,0); el.trab.value=num(7,0,3,0); el.looks.value=num(9,0,4,0);
   el.auto.checked=!!(flags&1); el.casa.checked=!!(flags&2);
-  el.solo.checked=!!(flags&4); el.libre.checked=!!(flags&8);
+  el.solo.checked=!!(flags&4);
   for(var k=0;k<11;k++){
     tonesOn[k]=!!(bits&(1<<k));
     tonesBox.children[k].setAttribute("aria-pressed",tonesOn[k]?"true":"false");
@@ -1455,12 +1452,11 @@ function readState(){
   if(a1>a2){var tmp=a1;a1=a2;a2=tmp}
   return {edo:+el.edo.value, a1:a1, a2:a2, h:+el.est.value, inc:ING_STEPS[+el.ing.value],
           edu:+el.edu.value, trab:+el.trab.value, auto:el.auto.checked, casa:el.casa.checked,
-          solo:el.solo.checked, libre:el.libre.checked, looks:+el.looks.value, tones:tonesOn.slice()};
+          solo:el.solo.checked, looks:+el.looks.value, tones:tonesOn.slice()};
 }
 function buildFilters(st){
   var all=st.tones.every(function(x){return x});
   return [
-    {on:st.libre, name:"Está sin pareja", sub:"soltero, separado, divorciado o viudo", f:function(i){return (pFlags[i]&8)!==0}},
     {on:!(st.a1===18&&st.a2===70), name:"Edad", sub:"de "+st.a1+" a "+st.a2+" años", f:function(i){return pAge[i]>=st.a1&&pAge[i]<st.a2+1}},
     {on:st.h>140, name:"Estatura", sub:(st.h/100).toFixed(2)+" m o más", f:function(i){return pH[i]>=st.h}},
     {on:st.edu>0, name:"Escolaridad", sub:EDU_LBL[st.edu], f:function(i){return pEdu[i]>=st.edu}},
@@ -1480,16 +1476,18 @@ function buildFilters(st){
 /* base del ámbito: sólo el sexo buscado, y sólo quien busca el sexo de quien busca.
    El descuento por orientación entra aquí, antes que cualquier filtro del usuario. */
 function scopeBase(tgt,src,scope){
-  var len=0;
+  var len=0, wOri=0;
   for(var j=0;j<N;j++){
     if(pSex[j]!==tgt) continue;
     if(scope>=0 && pSt[j]!==scope) continue;
     if(!attractedTo(tgt,pOri[j],src)) continue;
+    wOri+=WS[tgt*NS+pSt[j]];
+    if((pFlags[j]&8)===0) continue;      // sin pareja: no es opcional, es el punto de partida
     idxBuf[len++]=j;
   }
   var w=0;
   for(var q=0;q<len;q++){ var i2=idxBuf[q]; w+=WS[tgt*NS+pSt[i2]] }
-  return {len:len, weight:w};
+  return {len:len, weight:w, wOri:wOri};
 }
 function cascade(filters, tgt, src, scope){
   var base=scopeBase(tgt,src,scope);
@@ -1504,7 +1502,7 @@ function cascade(filters, tgt, src, scope){
     rows.push({name:F.name, sub:F.sub, after:w, cut:prevW>0?1-w/prevW:0});
     prevW=w;
   }
-  return {rows:rows, cases:len, weight:prevW, len:len, base:base.weight};
+  return {rows:rows, cases:len, weight:prevW, len:len, base:base.weight, baseOri:base.wOri};
 }
 /* pesos por entidad de los sobrevivientes (usa idxBuf, así que va justo después de cascade) */
 function perState(len,tgt){
@@ -1646,7 +1644,7 @@ function update(){
   var res = st.edo<0 ? nat : cascade(filters,C.tgt,C.src,st.edo);
   var people=res.weight, share=scopeTotal>0?people/scopeTotal:0;
   var coarse = res.cases>0 && res.cases<60;
-  var oriBase=res.base;   // cuántos quedan sólo por orientación, antes de tus filtros
+  var oriBase=res.baseOri, libreBase=res.base;   // recortes automáticos, antes de tus filtros
 
   $("kicker").textContent = (C.tgt===0?"Hombres":"Mujeres")+" que cumplen todo"+(st.edo<0?"":" en "+STATES[st.edo].n);
   animateBig(people);
@@ -1685,14 +1683,12 @@ function update(){
                 fmt(people)+" cumplen mis requisitos. "+
                 (share>0?"1 de cada "+Math.round(1/share).toLocaleString("es-MX")+".":"Ninguno.")+
                 " "+vd[0]+"\n"+lastShare.url;
-  try{ history.replaceState(null,"",hash) }catch(e){}
-  savePrefs();
 
   ecoCard(st.edo);
   // el índice "vs. país" siempre se compara contra la media nacional,
   // aunque estés viendo un estado en particular
   renderStates(byState,st.edo,nat.weight/TGT.total,nat.cases);
-  renderFunnel(res.rows,st,scopeName,scopeTotal,oriBase);
+  renderFunnel(res.rows,st,scopeName,scopeTotal,oriBase,libreBase);
   renderMarket(st,people,scopeName);
 }
 
@@ -1800,7 +1796,7 @@ function renderMove(rows,sel,natShare,natCases){
     '<div class="move-stat"><b>'+Math.round(100*ratio)+'</b><span>índice vs. país (100 = promedio)</span></div>';
 }
 
-function renderFunnel(rows,st,scopeName,scopeTotal,oriBase){
+function renderFunnel(rows,st,scopeName,scopeTotal,oriBase,libreBase){
   var C=COMBOS[combo], TGT=SEX[C.tgt], SRC=SEX[C.src];
   var natTot=TGT.total;
   var html='<div class="frow head"><span>Requisito</span><span class="fbarhd">Sobreviven</span><span class="fnum">'+
@@ -1820,6 +1816,11 @@ function renderFunnel(rows,st,scopeName,scopeTotal,oriBase){
         '<span class="bar"><i style="width:'+(100*oriBase/natTot).toFixed(3)+'%"></i></span>'+
         '<span class="fnum">'+fmt(oriBase)+'</span>'+
         '<span class="fcut">−'+(scopeTotal>0?(100-100*oriBase/scopeTotal).toFixed(1):"0")+'%</span></div>';
+  html+='<div class="frow scope"><span class="fname">Sin pareja'+
+        '<small>siempre aplicado: soltero, separado, divorciado o viudo</small></span>'+
+        '<span class="bar"><i style="width:'+(100*libreBase/natTot).toFixed(3)+'%"></i></span>'+
+        '<span class="fnum">'+fmt(libreBase)+'</span>'+
+        '<span class="fcut">−'+(oriBase>0?(100-100*libreBase/oriBase).toFixed(1):"0")+'%</span></div>';
   rows.forEach(function(R){
     html+='<div class="frow"><span class="fname">'+R.name+'<small>'+R.sub+'</small></span>'+
           '<span class="bar"><i style="width:'+(100*R.after/scopeTotal).toFixed(3)+'%"></i></span>'+
@@ -1834,14 +1835,14 @@ function renderFunnel(rows,st,scopeName,scopeTotal,oriBase){
 }
 
 /* ================= presets ================= */
-var RESET_STATE={edo:-1,a1:18,a2:70,h:140,ing:0,edu:0,trab:0,auto:0,casa:0,solo:0,libre:0,looks:0};
+var RESET_STATE={edo:-1,a1:18,a2:70,h:140,ing:0,edu:0,trab:0,auto:0,casa:0,solo:0,looks:0};
 var PRESETS=[
-  {n:"🦄 El unicornio de TikTok", s:{edo:-1,a1:28,a2:38,h:180,ing:12,edu:3,trab:2,auto:1,casa:1,solo:1,libre:1,looks:4}},
-  {n:"1.80 y que respire",        s:{edo:-1,a1:25,a2:40,h:180,ing:0, edu:0,trab:0,auto:0,casa:0,solo:0,libre:1,looks:0}},
-  {n:"Solo el 20% más guapo",     s:{edo:-1,a1:18,a2:70,h:140,ing:0, edu:0,trab:0,auto:0,casa:0,solo:0,libre:1,looks:4}},
-  {n:"El de la lista de tu tía",  s:{edo:-1,a1:28,a2:40,h:175,ing:10,edu:3,trab:2,auto:1,casa:1,solo:1,libre:1,looks:3}},
-  {n:"Estabilidad, nada más",     s:{edo:-1,a1:28,a2:45,h:140,ing:5, edu:0,trab:2,auto:0,casa:0,solo:1,libre:1,looks:0}},
-  {n:"Realista y feliz",          s:{edo:-1,a1:27,a2:42,h:165,ing:4, edu:2,trab:1,auto:0,casa:0,solo:1,libre:1,looks:2}},
+  {n:"🦄 El unicornio de TikTok", s:{edo:-1,a1:28,a2:38,h:180,ing:12,edu:3,trab:2,auto:1,casa:1,solo:1,looks:4}},
+  {n:"1.80 y que respire",        s:{edo:-1,a1:25,a2:40,h:180,ing:0, edu:0,trab:0,auto:0,casa:0,solo:0,looks:0}},
+  {n:"Solo el 20% más guapo",     s:{edo:-1,a1:18,a2:70,h:140,ing:0, edu:0,trab:0,auto:0,casa:0,solo:0,looks:4}},
+  {n:"El de la lista de tu tía",  s:{edo:-1,a1:28,a2:40,h:175,ing:10,edu:3,trab:2,auto:1,casa:1,solo:1,looks:3}},
+  {n:"Estabilidad, nada más",     s:{edo:-1,a1:28,a2:45,h:140,ing:5, edu:0,trab:2,auto:0,casa:0,solo:1,looks:0}},
+  {n:"Realista y feliz",          s:{edo:-1,a1:27,a2:42,h:165,ing:4, edu:2,trab:1,auto:0,casa:0,solo:1,looks:2}},
   {n:"Sin filtros",               s:RESET_STATE}
 ];
 var pbox=$("presets");
@@ -1854,11 +1855,12 @@ PRESETS.forEach(function(p){
 function applyState(v){
   el.edo.value=v.edo; el.edadMin.value=v.a1; el.edadMax.value=v.a2; el.est.value=v.h; el.ing.value=v.ing;
   el.edu.value=v.edu; el.trab.value=v.trab; el.looks.value=v.looks||0;
-  el.auto.checked=!!v.auto; el.casa.checked=!!v.casa; el.solo.checked=!!v.solo; el.libre.checked=!!v.libre;
+  el.auto.checked=!!v.auto; el.casa.checked=!!v.casa; el.solo.checked=!!v.solo;
   for(var k=0;k<11;k++){ tonesOn[k]=true; tonesBox.children[k].setAttribute("aria-pressed","true") }
   update();
 }
 function empezarDeNuevo(){
+  try{ history.replaceState(null,"",location.pathname+location.search) }catch(e){}
   setCombo(0);
   applyState(RESET_STATE);
   valorAsentado=null; $("delta").hidden=true;   // el contador de cambios arranca limpio
@@ -1886,7 +1888,7 @@ el.edadMin.addEventListener("input",function(){ clampEdad("min"); queue() });
 el.edadMax.addEventListener("input",function(){ clampEdad("max"); queue() });
 ["est","ing"].forEach(function(id){ el[id].addEventListener("input",queue) });
 ["edo","edu","trab","looks"].forEach(function(id){ el[id].addEventListener("change",update) });
-["auto","casa","solo","libre"].forEach(function(id){ el[id].addEventListener("change",update) });
+["auto","casa","solo"].forEach(function(id){ el[id].addEventListener("change",update) });
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(){ setTimeout(update,60) });
 
 /* ================= infografía para compartir =================
@@ -1901,7 +1903,7 @@ function allCombos(st){
 }
 function activeFilterList(st){
   var out=[], C=COMBOS[combo], TGT=SEX[C.tgt];
-  if(st.libre) out.push("Sin pareja");
+  out.push("Sin pareja");
   if(!(st.a1===18&&st.a2===70)) out.push(st.a1+"–"+st.a2+" años");
   if(st.h>140) out.push((st.h/100).toFixed(2)+" m o más");
   if(st.edu>0) out.push(EDU_LBL[st.edu]);
@@ -2064,7 +2066,7 @@ $("shRand").addEventListener("click",function(){
   var a1=r(20,45), a2=a1+r(3,15);
   applyState({edo:Math.random()<0.35?r(0,NS-1):-1, a1:a1, a2:Math.min(70,a2),
     h:r(160,188), ing:r(0,12), edu:r(0,3), trab:r(0,3),
-    auto:r(0,1), casa:r(0,1), solo:r(0,1), libre:1, looks:r(0,4)});
+    auto:r(0,1), casa:r(0,1), solo:r(0,1), looks:r(0,4)});
   toast("Filtros al azar");
 });
 
@@ -2079,7 +2081,9 @@ if("IntersectionObserver" in window){
    Una liga compartida siempre gana sobre lo guardado en el aparato:
    si no, verías tus propios filtros en vez de los de quien te la mandó. */
 setTimeout(function(){
-  if(!applyHash()) loadPrefs();
+  // la versión anterior guardaba preferencias; se limpian para no dejar basura
+  try{ localStorage.removeItem("cuantoshay.v1") }catch(e){}
+  applyHash();   // sólo una liga compartida define el estado inicial
   syncGenderLabels(); goStep(1); syncRevealed();
   build(); update();
 },40);
