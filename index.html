@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="¿Cuánta gente en México cumple tus requisitos de pareja? Calculadora demográfica por estado con datos calibrados al INEGI.">
 <meta property="og:title" content="Uno de cada cuántos">
 <meta property="og:description" content="Elige a quién buscas, pon tus requisitos y descubre cuánta gente en México los cumple de verdad.">
@@ -155,6 +155,7 @@ h1 em{font-family:"Newsreader",Georgia,serif; font-style:italic; font-weight:400
 /* el acceso al análisis completo sólo tiene sentido en el celular,
    donde está escondido; en escritorio ya está todo a la vista */
 .ver-mas{display:none}
+.mini-nota{display:none; margin:0}
 @media (max-width:900px){ .ver-mas{display:block} }
 
 /* quién busca a quién */
@@ -260,6 +261,15 @@ select:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
 .big.loading{font-size:1.4rem; color:var(--ink-3); letter-spacing:0; font-weight:500}
 .big-sub{margin:10px 0 0; font-size:15px; color:var(--ink-2); max-width:40ch}
 .big-sub b{color:var(--ink); font-weight:600}
+/* cuánto se movió el número con el último filtro que tocaste */
+.delta{
+  display:inline-block; margin-top:9px; padding:4px 11px; border-radius:999px;
+  font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600;
+  font-variant-numeric:tabular-nums;
+}
+.delta.baja{background:var(--accent-soft); color:var(--accent)}
+.delta.sube{background:var(--teal-soft); color:var(--teal)}
+.delta.igual{background:var(--surface-3); color:var(--ink-3)}
 .odds{text-align:right; font-family:"IBM Plex Mono",monospace; border-left:1px solid var(--line); padding-left:26px}
 @media (max-width:640px){ .odds{text-align:left; border-left:0; border-top:1px solid var(--line); padding:16px 0 0} }
 .odds-num{font-size:1.55rem; font-weight:600; color:var(--ink); letter-spacing:-.02em; font-variant-numeric:tabular-nums}
@@ -499,11 +509,79 @@ h3{
   .badge{margin-top:0; font-size:10.5px; line-height:1.35; padding:6px 10px}
   body:not(.revealed) .layout>main{display:none}
 
+  /* ---- modo filtrando: una app de altura fija, sin scroll de página ----
+     El encabezado se va, la tarjeta y el paso se reparten la pantalla,
+     y si un paso llegara a no caber, sólo se desplaza su contenido. */
+  body:not(.revealed){overflow:hidden}
+  body:not(.revealed) .wrap{
+    height:100vh; height:100dvh;
+    display:flex; flex-direction:column; padding-bottom:0;
+  }
+  body:not(.revealed) header{display:none}
+  body:not(.revealed) .layout{
+    flex:1; min-height:0; display:flex; flex-direction:column; gap:9px; padding-top:9px;
+  }
+  body:not(.revealed) .layout>.result{
+    position:static; flex:0 0 auto; margin:0; border-radius:var(--r); border:1px solid var(--line);
+  }
+  body:not(.revealed) .layout>.panel{
+    flex:1; min-height:0; display:flex; flex-direction:column; margin-bottom:9px;
+  }
+  body:not(.revealed) .panel-body{flex:1; min-height:0; overflow-y:auto; max-height:none}
+  body:not(.revealed) .step-nav{flex:0 0 auto}
+
+  /* cada píxel del modo filtrando es para el paso que estás decidiendo */
+  body:not(.revealed) .result-top{padding:11px 14px 9px; gap:7px}
+  body:not(.revealed) .kicker{font-size:9.5px}
+  body:not(.revealed) .big{font-size:2.4rem}
+  body:not(.revealed) .big-sub{font-size:11px; margin-top:2px; line-height:1.3}
+  body:not(.revealed) .delta{font-size:10.5px; margin-top:6px; padding:3px 9px}
+  body:not(.revealed) .result-top>div:last-child{gap:16px; padding-top:7px}
+  body:not(.revealed) .odds-num{font-size:.92rem}
+  body:not(.revealed) .odds-lbl{font-size:8.5px}
+  body:not(.revealed) .verdict{margin:0 14px 10px; padding:8px 11px}
+  body:not(.revealed) .verdict-line{font-size:.95rem; line-height:1.2}
+  body:not(.revealed) .verdict-cmp{font-size:.85rem; margin-top:2px}
+  body:not(.revealed) .panel-hd{padding:9px 14px}
+  body:not(.revealed) .panel-hd h2{font-size:10px; letter-spacing:.09em}
+  body:not(.revealed) .reset{font-size:11px}
+  body:not(.revealed) .field{padding:11px 0}
+  body:not(.revealed) .fine{font-size:9.5px; margin-top:6px}
+  body:not(.revealed) .panel-body{padding:2px 14px 12px}
+  body:not(.revealed) .step-nav{padding:9px 14px}
+  body:not(.revealed) .nav-btn{padding:7px 13px; font-size:12.5px}
+  body:not(.revealed) .chk{font-size:13px; padding:6px 8px}
+  /* "ver todos los filtros" es de escritorio: aquí sólo estorba */
+  body:not(.revealed) .all-toggle:not(.ver-mas){display:none}
+  body:not(.revealed) .ver-mas{padding:9px 14px}
+  /* la aclaración no puede desaparecer sólo porque no cabe el encabezado */
+  .mini-nota{
+    display:block; font-family:"IBM Plex Mono",monospace; font-size:9px; line-height:1.35;
+    color:var(--ink-3); text-align:center; padding:5px 12px 7px; border-top:1px solid var(--line);
+  }
+  body.revealed .mini-nota{display:none}
+
   /* al revelar el análisis, el número deja de estar fijo y vuelve la barra */
   body.revealed .layout>.result{position:static; margin:0; border-radius:var(--r); border:1px solid var(--line)}
   body.revealed .dots{display:block}
   body.revealed .share{display:flex}
   body.revealed .stickybar{display:block}
+}
+
+
+/* en los iPhone cortos se recorta lo secundario para que ningún paso
+   necesite desplazarse; en pantallas altas se conserva completo */
+@media (max-width:900px) and (max-height:720px){
+  body:not(.revealed) .big{font-size:2.15rem}
+  body:not(.revealed) .big-sub{display:none}
+  body:not(.revealed) .verdict-cmp{display:none}
+  body:not(.revealed) .verdict{margin-bottom:9px; padding:7px 11px}
+}
+@media (max-width:900px) and (max-height:600px){
+
+  body:not(.revealed) .kicker{display:none}
+  body:not(.revealed) .big{font-size:1.9rem}
+  body:not(.revealed) .mini-nota{display:none}
 }
 
 </style>
@@ -544,13 +622,17 @@ h3{
         <p class="fine" id="oriNote">El modelo descuenta a quienes no buscan tu género, con la orientación sexual que reporta la ENDISEG 2021 del INEGI.</p>
       </div>
 
-      <div class="field">
-        <div class="label"><span>Dónde buscas</span></div>
-        <select id="edo"><option value="-1">Todo México</option></select>
-      </div>
       </div>
 
       <div class="stepgroup" data-step="2">
+      <div class="field">
+        <div class="label"><span>Dónde buscas</span></div>
+        <select id="edo"><option value="-1">Todo México</option></select>
+        <p class="fine">Cada entidad entra con su propia economía, escolaridad, informalidad y estatura.</p>
+      </div>
+      </div>
+
+      <div class="stepgroup" data-step="3">
       <div class="field">
         <div class="label"><span>Edad</span><span class="val" id="v-edad">25 – 40 años</span></div>
         <div class="dual">
@@ -567,7 +649,7 @@ h3{
       </div>
       </div>
 
-      <div class="stepgroup" data-step="3">
+      <div class="stepgroup" data-step="4">
       <div class="field">
         <div class="label"><span>Ingreso mensual mínimo</span><span class="val" id="v-ing">$20,000</span></div>
         <input type="range" id="ing" min="0" max="14" step="1" value="8" aria-label="Ingreso mensual mínimo">
@@ -594,7 +676,7 @@ h3{
       </div>
       </div>
 
-      <div class="stepgroup" data-step="4">
+      <div class="stepgroup" data-step="5">
       <div class="field">
         <div class="label"><span>Patrimonio y vivienda</span></div>
         <div class="checks">
@@ -606,7 +688,7 @@ h3{
       </div>
       </div>
 
-      <div class="stepgroup" data-step="5">
+      <div class="stepgroup" data-step="6">
       <div class="field">
         <div class="label"><span>Tono de piel</span><span class="val" id="v-tono">11 / 11</span></div>
         <div class="tones" id="tones"></div>
@@ -634,6 +716,7 @@ h3{
     </div>
     <button class="all-toggle" id="allToggle" type="button">Ver todos los filtros de una vez</button>
     <button class="all-toggle ver-mas" id="verMas" type="button">Ver el análisis completo</button>
+    <p class="mini-nota">Modelo con cifras públicas del INEGI · no es un censo real</p>
   </aside>
 
   <div class="result">
@@ -642,6 +725,7 @@ h3{
         <p class="kicker" id="kicker">Hombres que cumplen todo</p>
         <p class="big loading" id="big">Generando 1.2 millones de perfiles…</p>
         <p class="big-sub" id="bigsub">Un momento: la simulación se arma en tu navegador.</p>
+        <span class="delta" id="delta" hidden></span>
       </div>
       <div>
         <div class="odds"><div class="odds-num" id="odds">—</div><div class="odds-lbl">Probabilidad</div></div>
@@ -855,6 +939,50 @@ function rankBy(key,desc){
   ord.forEach(function(k,pos){ STATES[k]["r_"+key]=pos+1 });
 }
 rankBy("pib",true); rankBy("ing",true); rankBy("esc",true); rankBy("auto",true); rankBy("inf",false); rankBy("men",true); rankBy("alt",true);
+
+/* ================= recintos por entidad =================
+   Capacidades aproximadas, sólo para dar escala humana al número.
+   Cada estado lleva un teatro, un recinto medio y su estadio grande. */
+var VEN_NAC=[[3000,"el Teatro Metropólitan"],[10000,"el Auditorio Nacional"],[65000,"el Foro Sol"],[83000,"el Estadio Azteca"]];
+var VENUES={
+ "Aguascalientes":     [[1600,"el Teatro Aguascalientes"],[15000,"la Plaza de Toros San Marcos"],[25000,"el Estadio Victoria"]],
+ "Baja California":    [[1200,"el Teatro del Estado"],[5000,"el Auditorio Fausto Gutiérrez"],[27000,"el Estadio Caliente"]],
+ "Baja California Sur":[[1000,"el Teatro de la Ciudad de La Paz"],[3500,"el Foro Cultural de La Paz"],[7000,"el Estadio Arturo C. Nahl"]],
+ "Campeche":           [[500,"el Teatro Francisco de Paula Toro"],[4000,"el Foro Cultural de Campeche"],[12000,"el Estadio Nuevo San Francisco"]],
+ "Chiapas":            [[1300,"el Teatro Emilio Rabasa"],[6000,"el Foro Chiapas"],[28000,"el Estadio Víctor Manuel Reyna"]],
+ "Chihuahua":          [[1500,"el Teatro de los Héroes"],[10000,"el Gimnasio Manuel Bernardo Aguirre"],[20000,"el Estadio Olímpico de la UACH"]],
+ "Ciudad de México":   [[3000,"el Teatro Metropólitan"],[10000,"el Auditorio Nacional"],[65000,"el Foro Sol"],[83000,"el Estadio Azteca"]],
+ "Coahuila":           [[1200,"el Teatro Isauro Martínez"],[11000,"el Auditorio Coahuila"],[30000,"el Estadio Corona"]],
+ "Colima":             [[600,"el Teatro Hidalgo"],[4000,"el Foro de Colima"],[11000,"el Estadio Colima"]],
+ "Durango":            [[900,"el Teatro Ricardo Castro"],[6000,"el Auditorio del Pueblo"],[18000,"el Estadio Francisco Zarco"]],
+ "Estado de México":   [[1200,"el Teatro Morelos"],[10000,"el Foro de Toluca"],[30000,"el Estadio Nemesio Díez"]],
+ "Guanajuato":         [[900,"el Teatro Juárez"],[12000,"el Foro del Lago"],[31000,"el Estadio León"]],
+ "Guerrero":           [[1300,"el Teatro Juan Ruiz de Alarcón"],[5000,"el Foro Papagayo"],[12000,"el Estadio Acapulco"]],
+ "Hidalgo":            [[800,"el Teatro San Francisco"],[4000,"el Auditorio Gota de Plata"],[30000,"el Estadio Hidalgo"]],
+ "Jalisco":            [[1000,"el Teatro Degollado"],[16000,"la Plaza de Toros Nuevo Progreso"],[46000,"el Estadio Akron"]],
+ "Michoacán":          [[800,"el Teatro Ocampo"],[8000,"el Auditorio de Morelia"],[41000,"el Estadio Morelos"]],
+ "Morelos":            [[700,"el Teatro Ocampo de Cuernavaca"],[5000,"el Foro de Cuernavaca"],[22000,"el Estadio Coruco Díaz"]],
+ "Nayarit":            [[700,"el Teatro del Pueblo de Tepic"],[5000,"la Plaza de Toros de Tepic"],[13000,"el Estadio Nicolás Álvarez Ortega"]],
+ "Nuevo León":         [[1400,"el Teatro de la Ciudad"],[17000,"la Arena Monterrey"],[53000,"el Estadio BBVA"]],
+ "Oaxaca":             [[1300,"el Teatro Macedonio Alcalá"],[11000,"el Auditorio Guelaguetza"],[15000,"el Estadio del Tecnológico"]],
+ "Puebla":             [[400,"el Teatro Principal"],[6000,"el Auditorio Metropolitano"],[51000,"el Estadio Cuauhtémoc"]],
+ "Querétaro":          [[500,"el Teatro de la República"],[5000,"el Auditorio Josefa Ortiz"],[34000,"el Estadio Corregidora"]],
+ "Quintana Roo":       [[700,"el Teatro de Cancún"],[5000,"el Foro de Chetumal"],[17000,"el Estadio Andrés Quintana Roo"]],
+ "San Luis Potosí":    [[1400,"el Teatro de la Paz"],[8000,"el Domo de la Feria"],[25000,"el Estadio Alfonso Lastras"]],
+ "Sinaloa":            [[800,"el Teatro Ángela Peralta"],[16000,"el Estadio Teodoro Mariscal"],[20000,"el Estadio El Encanto"]],
+ "Sonora":             [[1200,"el Teatro Auditorio del Estado"],[16000,"el Estadio Fernando Valenzuela"],[19000,"el Estadio Héroe de Nacozari"]],
+ "Tabasco":            [[1200,"el Teatro Esperanza Iris"],[10000,"el Parque Centenario"],[26000,"el Estadio Olmeca"]],
+ "Tamaulipas":         [[900,"el Teatro Metropolitano"],[10000,"el Estadio Tamaulipas"],[19000,"el Estadio Marte R. Gómez"]],
+ "Tlaxcala":           [[600,"el Teatro Xicohténcatl"],[4000,"el Foro de Tlaxcala"],[10000,"el Estadio Tlahuicole"]],
+ "Veracruz":           [[900,"el Teatro Clavijero"],[9000,"el Estadio Beto Ávila"],[30000,"el Estadio Luis Pirata Fuente"]],
+ "Yucatán":            [[700,"el Teatro Peón Contreras"],[16000,"el Parque Kukulcán"],[15000,"el Estadio Carlos Iturralde"]],
+ "Zacatecas":          [[800,"el Teatro Calderón"],[6000,"la Plaza de Toros de Zacatecas"],[20000,"el Estadio Francisco Villa"]]
+};
+STATES.forEach(function(S){
+  var v=(VENUES[S.n]||VEN_NAC).slice();
+  v.sort(function(a,b){return a[0]-b[0]});
+  S.ven=v;
+});
 var ALT_MIN=Math.min.apply(null,STATES.map(function(x){return x.alt}));
 var ALT_MAX=Math.max.apply(null,STATES.map(function(x){return x.alt}));
 
@@ -1080,7 +1208,7 @@ function syncGenderLabels(){
 }
 
 /* ================= navegación por pasos ================= */
-var STEP_TITLES=["Quién busca a quién","Edad y estatura","Dinero y estudios","Patrimonio","Físico"];
+var STEP_TITLES=["Quién busca a quién","Dónde buscas","Edad y estatura","Dinero y estudios","Patrimonio","Físico"];
 var NSTEPS=STEP_TITLES.length, step=1, showAll=false;
 var groups=document.querySelectorAll(".stepgroup");
 var dotsBox=$("stepDots");
@@ -1175,28 +1303,64 @@ function loadPrefs(){
   }catch(e){ return false }
 }
 
+/* ================= cuánto costó el último filtro =================
+   Se espera a que el número se asiente para no parpadear mientras
+   arrastras un deslizador. */
+var valorAsentado=null, deltaTimer=null;
+function textoPct(dif,base,nuevo){
+  if(dif<0 && nuevo<1) return "−100%";              // sólo si de verdad no queda nadie
+  if(base<=0) return dif>0 ? "+∞" : "0%";
+  var pct=100*Math.abs(dif)/base;
+  if(dif>0 && pct>=900) return "×"+(nuevo/base<10 ? (nuevo/base).toFixed(1) : Math.round(nuevo/base));
+  if(dif<0 && pct>99.9) pct=99.9;                   // quedan pocos, pero no cero
+  // con decimal en los extremos: redondear 99.9 a 100 diría "no queda nadie" y sí quedan
+  var txt=(pct<10||pct>99) ? pct.toFixed(1) : String(Math.round(pct));
+  return (dif<0?"−":"+")+txt+"%";
+}
+function registrarCambio(nuevo){
+  clearTimeout(deltaTimer);
+  deltaTimer=setTimeout(function(){
+    var box=$("delta");
+    if(valorAsentado===null){ box.hidden=true; valorAsentado=nuevo; return }
+    var dif=nuevo-valorAsentado;
+    if(Math.abs(dif)<0.5){
+      // que un filtro no quite a nadie también es información
+      box.className="delta igual";
+      box.textContent="sin cambio · ese filtro no quitó a nadie";
+      box.hidden=false;
+    } else {
+      box.className="delta "+(dif<0?"baja":"sube");
+      box.textContent=(dif<0?"−":"+")+fmt(Math.abs(dif))+"  ·  "+textoPct(dif,valorAsentado,nuevo)+" con ese cambio";
+      box.hidden=false;
+    }
+    valorAsentado=nuevo;
+  },420);
+}
+
 /* ================= veredicto y escala humana ================= */
 var CANONICAL="https://cuantoshay.netlify.app";
-var AZTECA=87000;
-function verdictFor(n,scopeName){
-  if(n<1)     return ["No existe. Literalmente.","Acabas de describir a alguien que no existe en "+scopeName+"."];
-  if(n<5)     return ["Caben todos en un Uber.","Y todavía sobra el lugar de adelante."];
-  if(n<15)    return ["Caben en una fiesta en tu casa.","De las chiquitas. En la sala."];
-  if(n<45)    return ["Son menos que tu salón de la prepa.","Todos los que cumplen en "+scopeName+", en un solo salón."];
-  if(n<200)   return ["Caben todos en un vagón del Metro.","Y sobrarían asientos."];
-  if(n<700)   return ["No llenarían un antro un sábado.","Toda tu lista, en una sola pista de baile."];
-  if(n<3500)  return ["No llenan el Teatro Metropólitan.","Todos los que cumplen, en una sola función."];
-  if(n<AZTECA){
-    var faltan=Math.round(AZTECA-n);
-    return ["No llenan el Estadio Azteca.", faltan===1 ? "Faltaría un solo lugar por ocupar." : "Faltarían "+fmt(faltan)+" lugares por ocupar."];
+/* el veredicto usa los recintos del estado que estés viendo */
+function verdictFor(n,scopeName,si){
+  var V=(si>=0 && STATES[si].ven) ? STATES[si].ven : VEN_NAC;
+  if(n<1)   return ["No existe. Literalmente.","Acabas de describir a alguien que no existe en "+scopeName+"."];
+  if(n<5)   return ["Caben todos en un Uber.","Y todavía sobra el lugar de adelante."];
+  if(n<15)  return ["Caben en una fiesta en tu casa.","De las chiquitas. En la sala."];
+  if(n<45)  return ["Son menos que tu salón de la prepa.","Todos los que cumplen en "+scopeName+", en un solo salón."];
+  if(n<180) return ["Caben todos en un camión.","Y sobrarían asientos."];
+  for(var k=0;k<V.length;k++){
+    if(n<V[k][0]){
+      var faltan=Math.round(V[k][0]-n);
+      return ["No llenan "+V[k][1]+".",
+              faltan===1 ? "Faltaría un solo lugar por ocupar." : "Faltarían "+fmt(faltan)+" lugares por ocupar."];
+    }
   }
-  if(n<1e6){
-    var r=n/AZTECA;
-    // con pocos Aztecas el redondeo miente (1.5 no es "uno"), así que ahí va decimal
-    var az=r<2.95 ? r.toFixed(1).replace(/\.0$/,"") : String(Math.round(r));
-    return [az==="1" ? "Justo un Azteca lleno." : "Son "+az+" Aztecas llenos.","Ya es un mercado de verdad."];
+  var big=V[V.length-1], r=n/big[0];
+  if(r<1.05) return ["Justo "+big[1]+" lleno.","Ni uno más, ni uno menos."];
+  if(n<5e6){
+    // con pocas veces el redondeo miente (1.5 no es "una")
+    var veces=r<2.95 ? r.toFixed(1).replace(/\.0$/,"") : String(Math.round(r));
+    return ["Llenarían "+big[1]+" "+veces+" veces.","Ya es un mercado de verdad."];
   }
-  if(n<5e6)   return ["Son más que la población de varios estados.","Hay de dónde escoger, y bastante."];
   return ["Prácticamente cualquiera.","Con estos filtros casi no estás filtrando."];
 }
 
@@ -1477,8 +1641,10 @@ function update(){
   if(coarse) cap+="  ·  Solo "+res.cases+" casos en la simulación: la cifra es aproximada.";
   $("dotcap").textContent=cap;
 
+  registrarCambio(people);
+
   // veredicto: la reacción, y la comparación que vuelve tangible el número
-  var vd=verdictFor(people,scopeName);
+  var vd=verdictFor(people,scopeName,st.edo);
   $("verdictLine").textContent=vd[0];
   $("verdictCmp").textContent=vd[1];
   $("verdict").hidden=false;
@@ -1729,7 +1895,7 @@ function buildInfographic(){
   var scopeName = st.edo<0 ? "todo México" : STATES[st.edo].n;
   var scopeTotal= st.edo<0 ? TGT.total : STATES[st.edo]["pop"+C.tgt];
   var share = scopeTotal>0 ? mine.n/scopeTotal : 0;
-  var vd = verdictFor(mine.n,scopeName);
+  var vd = verdictFor(mine.n,scopeName,st.edo);
 
   var W=1080,H=1350, cv=document.createElement("canvas");
   cv.width=W; cv.height=H;
