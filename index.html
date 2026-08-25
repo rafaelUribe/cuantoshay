@@ -175,10 +175,9 @@ h1 em{font-family:"Newsreader",Georgia,serif; font-style:italic; font-weight:400
 .opt:hover{border-color:var(--accent); color:var(--accent)}
 .opt[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent); color:var(--accent)}
 .opt[aria-pressed="true"]::after,
-.edo-item[aria-pressed="true"]::after,
 .edo-todo[aria-pressed="true"]::after{content:"  ✓"; font-weight:800}
 /* todas se hunden al tocarlas: ninguna parece bloqueada */
-.opt:active,.edo-item:active,.edo-todo:active,.who:active{transform:scale(.97)}
+.opt:active,.edo-todo:active,.who:active{transform:scale(.97)}
 .opt:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
 
 /* dónde buscas: toca y sigue */
@@ -192,22 +191,9 @@ h1 em{font-family:"Newsreader",Georgia,serif; font-style:italic; font-weight:400
 .edo-todo[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent); color:var(--accent)}
 .edo-todo:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
 .edo-sep{
-  margin:11px 0 8px; text-align:center; font-family:"IBM Plex Mono",monospace;
+  margin:12px 0 9px; text-align:center; font-family:"IBM Plex Mono",monospace;
   font-size:10px; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3);
 }
-.edo-list{
-  display:grid; grid-template-columns:1fr 1fr; gap:5px;
-  max-height:230px; overflow-y:auto; padding-right:2px;
-}
-.edo-item{
-  font:inherit; font-family:"Archivo",sans-serif; font-size:12.5px; font-weight:500;
-  padding:9px 8px; cursor:pointer; text-align:left; line-height:1.2;
-  background:var(--surface); color:var(--ink-2);
-  border:1px solid var(--line); border-radius:8px; transition:all .1s;
-}
-.edo-item:hover{border-color:var(--accent); color:var(--accent)}
-.edo-item[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent); color:var(--accent); font-weight:700}
-.edo-item:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
 
 /* quién busca a quién */
 .whowho{display:grid; grid-template-columns:1fr 1fr; gap:7px}
@@ -705,10 +691,9 @@ h3{
       <div class="stepgroup" data-step="2">
       <div class="field">
         <div class="label"><span>Dónde buscas</span></div>
+        <select id="edo"><option value="-1">Elige tu estado…</option></select>
+        <p class="edo-sep">o busca en todo el país</p>
         <button class="edo-todo" id="edoTodo" type="button" aria-pressed="true">Todo México</button>
-        <p class="edo-sep">o toca tu estado</p>
-        <div class="edo-list" id="edoList"></div>
-        <select id="edo" hidden aria-hidden="true"><option value="-1">Todo México</option></select>
       </div>
       </div>
 
@@ -1316,9 +1301,22 @@ var el={edo:$("edo"),edadMin:$("edadMin"),edadMax:$("edadMax"),est:$("est"),ing:
         trab:$("trab"),auto:$("auto"),casa:$("casa"),solo:$("solo"),looks:$("looks"),cuerpo:$("cuerpo")};
 var tonesOn=[1,1,1,1,1,1,1,1,1,1,1].map(Boolean);
 
-STATES.forEach(function(S,k){
-  var o=document.createElement("option"); o.value=k; o.textContent=S.n; el.edo.appendChild(o);
-});
+/* arriba los más poblados, que es donde vive la mayoría; el resto alfabético */
+var DESTACADOS=["Estado de México","Ciudad de México","Jalisco","Nuevo León","Veracruz"];
+(function(){
+  function opcion(k){
+    var o=document.createElement("option"); o.value=k; o.textContent=STATES[k].n; return o;
+  }
+  var g1=document.createElement("optgroup"); g1.label="Los más poblados";
+  DESTACADOS.forEach(function(nom){
+    var k=STATES.findIndex(function(S){return S.n===nom});
+    if(k>=0) g1.appendChild(opcion(k));
+  });
+  el.edo.appendChild(g1);
+  var g2=document.createElement("optgroup"); g2.label="Los demás, en orden alfabético";
+  STATES.forEach(function(S,k){ if(DESTACADOS.indexOf(S.n)<0) g2.appendChild(opcion(k)) });
+  el.edo.appendChild(g2);
+})();
 /* helper: pinta un grupo de botones sobre un control oculto que sigue
    siendo la fuente de verdad, para no tocar el resto de la lógica */
 function grupoOpciones(cajaId, control, opciones, pasoPropio){
@@ -1366,7 +1364,6 @@ var sincronizadores=[];
 function sincronizarOpciones(){ for(var i=0;i<sincronizadores.length;i++) sincronizadores[i]() }
 
 /* dónde buscas: elegir avanza solo, sin pasar por "Siguiente" */
-var edoList=$("edoList");
 function elegirEdo(v){
   el.edo.value=v;
   syncEdoUI();
@@ -1374,13 +1371,7 @@ function elegirEdo(v){
   if(step===2) goStep(3);
 }
 $("edoTodo").addEventListener("click",function(){ elegirEdo(-1) });
-STATES.forEach(function(S,k){
-  var b=document.createElement("button");
-  b.className="edo-item"; b.type="button"; b.textContent=S.n;
-  b.setAttribute("aria-pressed","false");
-  b.addEventListener("click",function(){ elegirEdo(k) });
-  edoList.appendChild(b);
-});
+
 var ING_OPC=[0,4,6,8,10,12,14];   // índices dentro de ING_STEPS
 sincronizadores.push(grupoOpciones("optIng", el.ing, ING_OPC.map(function(i){
   return {v:i, txt: ING_STEPS[i]===0 ? "Sin mínimo" : "$"+ING_STEPS[i].toLocaleString("es-MX")+"+"};
@@ -1437,11 +1428,7 @@ sincronizadores.push(grupoSiNo("optSolo", el.solo, 9, function(v){
 sincronizadores.push(grupoSiNo("optCasa", el.casa, 10));
 
 function syncEdoUI(){
-  var v=+el.edo.value;
-  $("edoTodo").setAttribute("aria-pressed", v<0?"true":"false");
-  for(var k=0;k<edoList.children.length;k++){
-    edoList.children[k].setAttribute("aria-pressed", k===v?"true":"false");
-  }
+  $("edoTodo").setAttribute("aria-pressed", +el.edo.value<0 ? "true":"false");
 }
 
 var tonesBox=$("tones");
@@ -2213,7 +2200,8 @@ function clampEdad(moved){
 el.edadMin.addEventListener("input",function(){ clampEdad("min"); queue() });
 el.edadMax.addEventListener("input",function(){ clampEdad("max"); queue() });
 el.est.addEventListener("input",queue);
-["edo","edu","trab","looks"].forEach(function(id){ el[id].addEventListener("change",update) });
+el.edo.addEventListener("change",function(){ elegirEdo(+el.edo.value) });
+["edu","trab","looks"].forEach(function(id){ el[id].addEventListener("change",update) });
 ["auto","casa","solo"].forEach(function(id){ el[id].addEventListener("change",update) });
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(){ setTimeout(update,60) });
 
