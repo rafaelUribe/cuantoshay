@@ -163,6 +163,8 @@ h1 em{font-family:"Newsreader",Georgia,serif; font-style:italic; font-weight:400
 /* grupos de opciones: un toque elige y avanza */
 .opts{display:grid; grid-template-columns:1fr 1fr; gap:6px}
 .opts-1{grid-template-columns:1fr}
+.opts-4{grid-template-columns:repeat(4,1fr); margin-bottom:10px}
+.opts-4 .opt{font-size:12px; padding:9px 4px}
 .opt{
   font:inherit; font-family:"Archivo",sans-serif; font-size:13px; font-weight:600;
   padding:11px 10px; cursor:pointer; text-align:center; line-height:1.2;
@@ -794,8 +796,10 @@ h3{
       <div class="stepgroup" data-step="11">
       <div class="field">
         <div class="label"><span>Tono de piel</span><span class="val" id="v-tono">11 / 11</span></div>
+        <div class="opts opts-4" id="optTono"></div>
         <div class="tones" id="tones"></div>
         <div class="tone-scale"><span>más claro</span><span>más oscuro</span></div>
+        <p class="fine">Los grupos son atajos sobre la misma escala de 11 tonos; también puedes tocar cada uno.</p>
       </div>
 
       <div class="field">
@@ -918,6 +922,7 @@ h3{
         <li><b>Ingreso</b> — ingreso mensual por su trabajo, en pesos de 2025.</li>
         <li><b>Vivienda propia</b> — la del hogar que encabeza; no cuenta la casa de sus papás. Por definición implica vivir por su cuenta, así que el modelo nunca genera dueños de casa viviendo con sus padres: si marcas los dos, el segundo ya no recorta nada.</li>
         <li><b>Tono de piel</b> — escala cromática de 11 tonos, el mismo tipo de instrumento que el INEGI usa en sus módulos de movilidad social y discriminación. Está aquí porque es un dato que el INEGI levanta y porque el resultado es justamente el punto: el filtro que la gente casi nunca dice en voz alta también tiene un número.</li>
+        <li><b>Claros y morenos por estado</b> — los atajos "Claros" (tonos 1 a 4), "Medios" (5 a 7) y "Morenos" (8 a 11) agrupan la misma escala. La proporción de tonos claros no es igual en todo el país: en el modelo va de alrededor del 42% en Baja California y 40% en Nuevo León a cerca del 15% en Chiapas y Oaxaca, contra un 28% nacional. Ese gradiente norte-sur está tomado de las diferencias regionales que reportan los módulos del INEGI, no medido entidad por entidad, así que sirve para comparar estados entre sí y no como cifra oficial de cada uno.</li>
         <li><b>Atractivo físico</b> — a diferencia de todo lo demás, esto <em>no</em> es un dato del INEGI: nadie lo mide. Se modela como un rasgo al azar, con forma de campana, igual de repartido en todo el país y sin relación con el ingreso o la escolaridad de cada quien. Los cinco niveles del selector son, literalmente, los quintiles de esa campana: "guapo" es el 20% más alto, "agradable" el 40% más alto, y así.</li>
       </ul>
 
@@ -1196,6 +1201,19 @@ for(sx=0;sx<2;sx++){
 
 var pAge,pH,pInc,pEdu,pTone,pJob,pFlags,pSt,pLooks,pSex,pOri,idxBuf;
 
+/* qué tan claro es cada estado, según los tonos que genera el modelo */
+function calculaTonos(){
+  var claros=new Float64Array(NS), tot=new Float64Array(NS);
+  for(var j=0;j<N;j++){
+    var w=WS[pSex[j]*NS+pSt[j]];
+    tot[pSt[j]]+=w;
+    if(pTone[j]<4) claros[pSt[j]]+=w;     // tonos 1 a 4 de la escala
+  }
+  for(var k=0;k<NS;k++) STATES[k].claro = tot[k]>0 ? claros[k]/tot[k] : 0;
+  BAR.claro = (function(){ var a=0,b=0; for(var k=0;k<NS;k++){ a+=STATES[k].claro*STATES[k].men; b+=STATES[k].men } return a/b })();
+  rankBy("claro",true);
+}
+
 function build(){
   pAge=new Float32Array(N); pH=new Float32Array(N); pInc=new Float32Array(N);
   pEdu=new Uint8Array(N); pTone=new Uint8Array(N); pJob=new Uint8Array(N);
@@ -1332,6 +1350,37 @@ sincronizadores.push(grupoOpciones("optTrab", el.trab, [
   {v:2,txt:"Empleo formal, con prestaciones"},{v:3,txt:"Profesionista con empleo formal"}
 ], 7));
 
+/* atajos de tono: claros 1-4, medios 5-7, morenos 8-11 */
+var GRUPOS_TONO=[
+  {txt:"Todos",   ini:0, fin:10},
+  {txt:"Claros",  ini:0, fin:3},
+  {txt:"Medios",  ini:4, fin:6},
+  {txt:"Morenos", ini:7, fin:10}
+];
+(function(){
+  var caja=$("optTono"), bs=[];
+  GRUPOS_TONO.forEach(function(g){
+    var b=document.createElement("button");
+    b.className="opt"; b.type="button"; b.textContent=g.txt;
+    b.setAttribute("aria-pressed","false");
+    b.addEventListener("click",function(){
+      for(var i=0;i<11;i++){
+        tonesOn[i] = (i>=g.ini && i<=g.fin);
+        tonesBox.children[i].setAttribute("aria-pressed", tonesOn[i]?"true":"false");
+      }
+      sincronizarOpciones(); update();
+    });
+    caja.appendChild(b); bs.push(b);
+  });
+  sincronizadores.push(function(){
+    GRUPOS_TONO.forEach(function(g,k){
+      var igual=true;
+      for(var i=0;i<11;i++){ if(tonesOn[i] !== (i>=g.ini && i<=g.fin)){ igual=false; break } }
+      bs[k].setAttribute("aria-pressed", igual?"true":"false");
+    });
+  });
+})();
+
 sincronizadores.push(grupoSiNo("optAuto", el.auto, 8));
 sincronizadores.push(grupoSiNo("optSolo", el.solo, 9, function(v){
   // si no encabeza su hogar, la vivienda propia no aplica
@@ -1357,7 +1406,7 @@ for(var t=0;t<11;t++){
     btn.addEventListener("click",function(){
       tonesOn[idx]=!tonesOn[idx];
       btn.setAttribute("aria-pressed",tonesOn[idx]?"true":"false");
-      update();
+      sincronizarOpciones(); update();
     });
     tonesBox.appendChild(btn);
   })(t);
@@ -1779,6 +1828,7 @@ function ecoCard(si){
       ecoCell("Informalidad laboral",(BAR.inf*100).toFixed(0)+"%",null,BAR.inf,"de los ocupados, sin seguridad social")+
       ecoCell("Escolaridad promedio",BAR.esc.toFixed(1)+" años",null,BAR.esc/12,"población de 15 años y más")+
       ecoCell("Viviendas con auto",(BAR.auto*100).toFixed(0)+"%",null,BAR.auto,"promedio del país")+
+      ecoCell("Tonos claros de piel",((BAR.claro||0)*100).toFixed(0)+"%",null,BAR.claro||0,"tonos 1 a 4 de la escala de 11")+
       ecoCell("Estatura promedio",natH.toFixed(1)+" cm",null,(BAR.alt-ALT_MIN)/(ALT_MAX-ALT_MIN),(C.tgt===0?"hombres adultos":"mujeres adultas")+", promedio nacional")+
       '</div>'+
       '<div class="eco-foot">Elige un estado para ver qué tanto se aleja de esta media — y cómo eso mueve tu número.</div>';
@@ -1796,6 +1846,7 @@ function ecoCard(si){
     ecoCell("Informalidad laboral",(S.inf*100).toFixed(0)+"%",S.r_inf,S.inf,"nacional "+(BAR.inf*100).toFixed(0)+"%")+
     ecoCell("Escolaridad promedio",S.esc.toFixed(1)+" años",S.r_esc,S.esc/12,"nacional "+BAR.esc.toFixed(1)+" años")+
     ecoCell("Viviendas con auto",(S.auto*100).toFixed(0)+"%",S.r_auto,S.auto,"nacional "+(BAR.auto*100).toFixed(0)+"%")+
+    ecoCell("Tonos claros de piel",((S.claro||0)*100).toFixed(0)+"%",S.r_claro,S.claro||0,"nacional "+((BAR.claro||0)*100).toFixed(0)+"% · tonos 1 a 4")+
     ecoCell("Estatura promedio",sHeight.toFixed(1)+" cm",S.r_alt,(S.alt-ALT_MIN)/(ALT_MAX-ALT_MIN),(sHeight>=natH?"+":"−")+Math.abs(sHeight-natH).toFixed(1)+" cm vs. el promedio nacional")+
     '</div>'+
     '<div class="eco-foot">'+ecoStory(S)+'</div>';
@@ -2291,7 +2342,7 @@ setTimeout(function(){
   try{ localStorage.removeItem("cuantoshay.v1") }catch(e){}
   applyHash();   // sólo una liga compartida define el estado inicial
   syncGenderLabels(); goStep(1); syncRevealed();
-  build(); update();
+  build(); calculaTonos(); update();
 },40);
 window.addEventListener("hashchange",function(){ if(applyHash()) update() });
 })();
