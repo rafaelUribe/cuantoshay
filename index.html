@@ -141,9 +141,13 @@ h1 em{font-family:"Newsreader",Georgia,serif; font-style:italic; font-weight:400
 .nav-btn.next{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
 .nav-btn.next:hover{filter:brightness(1.08); color:var(--accent-ink)}
 .nav-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
-.step-dots{display:flex; gap:6px; flex:1; justify-content:center}
+.step-dots{display:flex; gap:4px; flex:1; justify-content:center; flex-wrap:wrap}
+.step-hint{
+  font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--ink-3); white-space:nowrap; flex:0 0 auto;
+}
 .step-dot{
-  width:7px; height:7px; border-radius:50%; background:var(--line-strong); border:0; padding:0;
+  width:6px; height:6px; border-radius:50%; background:var(--line-strong); border:0; padding:0;
   cursor:pointer; transition:all .15s;
 }
 .step-dot.on{background:var(--accent); transform:scale(1.35)}
@@ -159,6 +163,48 @@ h1 em{font-family:"Newsreader",Georgia,serif; font-style:italic; font-weight:400
 .ver-mas{display:none}
 .mini-nota{display:none; margin:0}
 @media (max-width:900px){ .ver-mas{display:block} }
+
+/* grupos de opciones: un toque elige y avanza */
+.opts{display:grid; grid-template-columns:1fr 1fr; gap:6px}
+.opts-1{grid-template-columns:1fr}
+.opt{
+  font:inherit; font-family:"Archivo",sans-serif; font-size:13px; font-weight:600;
+  padding:11px 10px; cursor:pointer; text-align:center; line-height:1.2;
+  background:var(--surface); color:var(--ink-2);
+  border:1px solid var(--line-strong); border-radius:9px; transition:all .1s;
+}
+.opts-1 .opt{text-align:left}
+.opt:hover{border-color:var(--accent); color:var(--accent)}
+.opt[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent); color:var(--accent)}
+.opt:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+/* dónde buscas: toca y sigue */
+.edo-todo{
+  display:block; width:100%; font:inherit; font-family:"Archivo",sans-serif;
+  font-size:14.5px; font-weight:700; padding:12px 14px; cursor:pointer;
+  background:var(--surface); color:var(--ink-2);
+  border:1px solid var(--line-strong); border-radius:10px; transition:all .12s;
+}
+.edo-todo:hover{border-color:var(--accent); color:var(--accent)}
+.edo-todo[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent); color:var(--accent)}
+.edo-todo:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.edo-sep{
+  margin:11px 0 8px; text-align:center; font-family:"IBM Plex Mono",monospace;
+  font-size:10px; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3);
+}
+.edo-list{
+  display:grid; grid-template-columns:1fr 1fr; gap:5px;
+  max-height:230px; overflow-y:auto; padding-right:2px;
+}
+.edo-item{
+  font:inherit; font-family:"Archivo",sans-serif; font-size:12.5px; font-weight:500;
+  padding:9px 8px; cursor:pointer; text-align:left; line-height:1.2;
+  background:var(--surface); color:var(--ink-2);
+  border:1px solid var(--line); border-radius:8px; transition:all .1s;
+}
+.edo-item:hover{border-color:var(--accent); color:var(--accent)}
+.edo-item[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent); color:var(--accent); font-weight:700}
+.edo-item:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
 
 /* quién busca a quién */
 .whowho{display:grid; grid-template-columns:1fr 1fr; gap:7px}
@@ -287,6 +333,11 @@ select:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
   margin:0; font-size:1.22rem; line-height:1.25; font-weight:700; letter-spacing:-.02em;
   color:var(--accent); text-wrap:balance;
 }
+.culpable{
+  margin:9px 0 0; padding-top:9px; border-top:1px solid var(--accent-line);
+  font-size:13px; line-height:1.4; color:var(--ink-2);
+}
+.culpable b{color:var(--accent); font-weight:700}
 .verdict-cmp{
   margin:6px 0 0; font-family:"Newsreader",Georgia,serif; font-size:1.02rem; line-height:1.4;
   color:var(--ink-2);
@@ -629,7 +680,7 @@ h3{
 
   <aside class="panel" id="panelEl">
     <div class="panel-hd">
-      <h2 id="stepTitle">Paso 1 de 5 · Quién busca a quién</h2>
+      <h2 id="stepTitle">Quién busca a quién</h2>
       <button class="reset" id="reset" type="button">Empezar de nuevo</button>
     </div>
     <div class="step-bar"><i id="stepFill"></i></div>
@@ -647,8 +698,10 @@ h3{
       <div class="stepgroup" data-step="2">
       <div class="field">
         <div class="label"><span>Dónde buscas</span></div>
-        <select id="edo"><option value="-1">Todo México</option></select>
-        <p class="fine">Cada entidad entra con su propia economía, escolaridad, informalidad y estatura.</p>
+        <button class="edo-todo" id="edoTodo" type="button" aria-pressed="true">Todo México</button>
+        <p class="edo-sep">o toca tu estado</p>
+        <div class="edo-list" id="edoList"></div>
+        <select id="edo" hidden aria-hidden="true"><option value="-1">Todo México</option></select>
       </div>
       </div>
 
@@ -663,31 +716,42 @@ h3{
         </div>
       </div>
 
-      <div class="field">
-        <div class="label"><span>Estatura mínima</span><span class="val" id="v-est">1.75 m</span></div>
-        <input type="range" id="est" min="140" max="200" step="1" value="140" aria-label="Estatura mínima en centímetros">
-      </div>
       </div>
 
       <div class="stepgroup" data-step="4">
       <div class="field">
-        <div class="label"><span>Ingreso mensual mínimo</span><span class="val" id="v-ing">$20,000</span></div>
-        <input type="range" id="ing" min="0" max="14" step="1" value="0" aria-label="Ingreso mensual mínimo">
+        <div class="label"><span>Estatura mínima</span><span class="val" id="v-est">1.75 m</span></div>
+        <input type="range" id="est" min="140" max="200" step="1" value="140" aria-label="Estatura mínima en centímetros">
+        <p class="fine" id="estNota"></p>
+      </div>
       </div>
 
+      <div class="stepgroup" data-step="5">
+      <div class="field">
+        <div class="label"><span>Ingreso mensual mínimo</span><span class="val" id="v-ing">sin mínimo</span></div>
+        <div class="opts" id="optIng"></div>
+        <input type="range" id="ing" min="0" max="14" step="1" value="0" hidden aria-hidden="true">
+      </div>
+      </div>
+
+      <div class="stepgroup" data-step="6">
       <div class="field">
         <div class="label"><span>Escolaridad mínima</span></div>
-        <select id="edu">
+        <div class="opts opts-1" id="optEdu"></div>
+        <select id="edu" hidden aria-hidden="true">
           <option value="0" selected>Cualquiera</option>
           <option value="1">Secundaria terminada</option>
           <option value="2">Preparatoria o técnico</option>
           <option value="3">Licenciatura o más</option>
         </select>
       </div>
+      </div>
 
+      <div class="stepgroup" data-step="7">
       <div class="field">
         <div class="label"><span>Situación laboral</span></div>
-        <select id="trab">
+        <div class="opts opts-1" id="optTrab"></div>
+        <select id="trab" hidden aria-hidden="true">
           <option value="0" selected>Cualquiera</option>
           <option value="1">Que trabaje</option>
           <option value="2">Empleo formal, con prestaciones</option>
@@ -696,18 +760,33 @@ h3{
       </div>
       </div>
 
-      <div class="stepgroup" data-step="5">
+      <div class="stepgroup" data-step="8">
       <div class="field">
-        <div class="label"><span>Patrimonio y vivienda</span></div>
-        <div class="checks">
-          <label class="chk"><input type="checkbox" id="auto"><span id="lbl-auto">Tiene auto propio</span></label>
-          <label class="chk"><input type="checkbox" id="casa"><span id="lbl-casa">Tiene vivienda propia</span></label>
-          <label class="chk"><input type="checkbox" id="solo"><span id="lbl-solo">Vive por su cuenta, no con sus papás</span></label>
-        </div>
+        <div class="label"><span>¿Tiene auto propio?</span></div>
+        <div class="opts" id="optAuto"></div>
+        <input type="checkbox" id="auto" hidden aria-hidden="true">
       </div>
       </div>
 
-      <div class="stepgroup" data-step="6">
+      <div class="stepgroup" data-step="9">
+      <div class="field">
+        <div class="label"><span>¿Vive por su cuenta?</span></div>
+        <div class="opts" id="optSolo"></div>
+        <input type="checkbox" id="solo" hidden aria-hidden="true">
+        <p class="fine">Es decir, que no viva en casa de sus papás.</p>
+      </div>
+      </div>
+
+      <div class="stepgroup" data-step="10">
+      <div class="field">
+        <div class="label"><span>¿Y la vivienda es suya?</span></div>
+        <div class="opts" id="optCasa"></div>
+        <input type="checkbox" id="casa" hidden aria-hidden="true">
+        <p class="fine">Sólo aparece porque vive por su cuenta: la vivienda propia es la del hogar que encabeza.</p>
+      </div>
+      </div>
+
+      <div class="stepgroup" data-step="11">
       <div class="field">
         <div class="label"><span>Tono de piel</span><span class="val" id="v-tono">11 / 11</span></div>
         <div class="tones" id="tones"></div>
@@ -731,6 +810,7 @@ h3{
     <div class="step-nav">
       <button class="nav-btn" id="stepPrev" type="button">Atrás</button>
       <div class="step-dots" id="stepDots"></div>
+      <span class="step-hint" id="stepHint" hidden>Toca y sigue</span>
       <button class="nav-btn next" id="stepNext" type="button">Siguiente</button>
     </div>
     <button class="all-toggle" id="allToggle" type="button">Ver todos los filtros de una vez</button>
@@ -755,6 +835,7 @@ h3{
     <div class="verdict" id="verdict" hidden>
       <p class="verdict-line" id="verdictLine"></p>
       <p class="verdict-cmp" id="verdictCmp"></p>
+      <p class="culpable" id="culpable" hidden></p>
     </div>
 
     <div class="dots">
@@ -1172,6 +1253,95 @@ var tonesOn=[1,1,1,1,1,1,1,1,1,1,1].map(Boolean);
 STATES.forEach(function(S,k){
   var o=document.createElement("option"); o.value=k; o.textContent=S.n; el.edo.appendChild(o);
 });
+/* helper: pinta un grupo de botones sobre un control oculto que sigue
+   siendo la fuente de verdad, para no tocar el resto de la lógica */
+function grupoOpciones(cajaId, control, opciones, pasoPropio){
+  var caja=$(cajaId), botones=[];
+  opciones.forEach(function(o){
+    var b=document.createElement("button");
+    b.className="opt"; b.type="button"; b.textContent=o.txt;
+    b.setAttribute("aria-pressed","false");
+    b.addEventListener("click",function(){
+      control.value=o.v;
+      sincronizarOpciones();
+      update();
+      if(step===pasoPropio) goStep(step+1);
+    });
+    caja.appendChild(b); botones.push(b);
+  });
+  return function(){
+    for(var i=0;i<opciones.length;i++){
+      botones[i].setAttribute("aria-pressed", String(+control.value)===String(opciones[i].v) ? "true":"false");
+    }
+  };
+}
+/* Sí / No sobre una casilla oculta */
+function grupoSiNo(cajaId, chk, pasoPropio, alElegir){
+  var caja=$(cajaId), bs=[];
+  [{v:true,txt:"Sí"},{v:false,txt:"No"}].forEach(function(o){
+    var b=document.createElement("button");
+    b.className="opt"; b.type="button"; b.textContent=o.txt;
+    b.setAttribute("aria-pressed","false");
+    b.addEventListener("click",function(){
+      chk.checked=o.v;
+      if(alElegir) alElegir(o.v);
+      sincronizarOpciones();
+      update();
+      if(step===pasoPropio) goStep(siguientePaso(step,1));
+    });
+    caja.appendChild(b); bs.push(b);
+  });
+  return function(){
+    bs[0].setAttribute("aria-pressed", chk.checked?"true":"false");
+    bs[1].setAttribute("aria-pressed", chk.checked?"false":"true");
+  };
+}
+var sincronizadores=[];
+function sincronizarOpciones(){ for(var i=0;i<sincronizadores.length;i++) sincronizadores[i]() }
+
+/* dónde buscas: elegir avanza solo, sin pasar por "Siguiente" */
+var edoList=$("edoList");
+function elegirEdo(v){
+  el.edo.value=v;
+  syncEdoUI();
+  update();
+  if(step===2) goStep(3);
+}
+$("edoTodo").addEventListener("click",function(){ elegirEdo(-1) });
+STATES.forEach(function(S,k){
+  var b=document.createElement("button");
+  b.className="edo-item"; b.type="button"; b.textContent=S.n;
+  b.setAttribute("aria-pressed","false");
+  b.addEventListener("click",function(){ elegirEdo(k) });
+  edoList.appendChild(b);
+});
+var ING_OPC=[0,4,6,8,10,12,14];   // índices dentro de ING_STEPS
+sincronizadores.push(grupoOpciones("optIng", el.ing, ING_OPC.map(function(i){
+  return {v:i, txt: ING_STEPS[i]===0 ? "Sin mínimo" : "$"+ING_STEPS[i].toLocaleString("es-MX")+"+"};
+}), 5));
+sincronizadores.push(grupoOpciones("optEdu", el.edu, [
+  {v:0,txt:"Cualquiera"},{v:1,txt:"Secundaria terminada"},
+  {v:2,txt:"Preparatoria o técnico"},{v:3,txt:"Licenciatura o más"}
+], 6));
+sincronizadores.push(grupoOpciones("optTrab", el.trab, [
+  {v:0,txt:"Cualquiera"},{v:1,txt:"Que trabaje"},
+  {v:2,txt:"Empleo formal, con prestaciones"},{v:3,txt:"Profesionista con empleo formal"}
+], 7));
+
+sincronizadores.push(grupoSiNo("optAuto", el.auto, 8));
+sincronizadores.push(grupoSiNo("optSolo", el.solo, 9, function(v){
+  // si no encabeza su hogar, la vivienda propia no aplica
+  if(!v) el.casa.checked=false;
+}));
+sincronizadores.push(grupoSiNo("optCasa", el.casa, 10));
+
+function syncEdoUI(){
+  var v=+el.edo.value;
+  $("edoTodo").setAttribute("aria-pressed", v<0?"true":"false");
+  for(var k=0;k<edoList.children.length;k++){
+    edoList.children[k].setAttribute("aria-pressed", k===v?"true":"false");
+  }
+}
 
 var tonesBox=$("tones");
 for(var t=0;t<11;t++){
@@ -1210,7 +1380,7 @@ COMBOS.forEach(function(C,k){
   b.className="who"; b.type="button";
   b.innerHTML=C.lbl+"<small>"+C.sub+"</small>";
   b.setAttribute("aria-pressed", k===0?"true":"false");
-  b.addEventListener("click",function(){ setCombo(k); update() });
+  b.addEventListener("click",function(){ setCombo(k); update(); if(step===1) goStep(2) });
   whoBox.appendChild(b);
 });
 function setCombo(k){
@@ -1221,9 +1391,6 @@ function setCombo(k){
 /* todo el texto de la interfaz cambia con el sexo buscado */
 function syncGenderLabels(){
   var C=COMBOS[combo], T=SEX[C.tgt], S=SEX[C.src];
-  $("lbl-auto").textContent="Tiene auto propio";
-  $("lbl-casa").textContent="Tiene vivienda propia";
-  $("lbl-solo").textContent="Vive por su cuenta, no con sus papás";
   $("looks").options[4].textContent = C.tgt===0 ? "Guapo — solo el top 20%" : "Guapa — solo el top 20%";
   $("looks").options[0].textContent = C.tgt===0 ? "Muy feo — no importa" : "Muy fea — no importa";
   var mismo = C.src===C.tgt;
@@ -1234,33 +1401,50 @@ function syncGenderLabels(){
 }
 
 /* ================= navegación por pasos ================= */
-var STEP_TITLES=["Quién busca a quién","Dónde buscas","Edad y estatura","Dinero y estudios","Patrimonio","Físico"];
+var STEP_TITLES=["Quién busca a quién","Dónde buscas","Edad","Estatura","Ingreso","Escolaridad","Trabajo","Auto","Vivienda","Casa propia","Físico"];
 var NSTEPS=STEP_TITLES.length, step=1, showAll=false;
+/* el paso de casa propia sólo existe si vive por su cuenta */
+function pasoActivo(n){ return n===10 ? el.solo.checked : true }
+function pasosActivos(){ var a=[]; for(var i=1;i<=NSTEPS;i++) if(pasoActivo(i)) a.push(i); return a }
+function siguientePaso(desde,dir){
+  var n=desde+dir;
+  while(n>=1 && n<=NSTEPS && !pasoActivo(n)) n+=dir;
+  return Math.max(1,Math.min(NSTEPS,n));
+}
 var groups=document.querySelectorAll(".stepgroup");
 var dotsBox=$("stepDots");
-for(var sd=0;sd<NSTEPS;sd++){
-  (function(k){
+function pintaPuntos(){
+  var act=pasosActivos();
+  dotsBox.innerHTML="";
+  act.forEach(function(n){
     var d=document.createElement("button");
-    d.className="step-dot"; d.type="button";
-    d.setAttribute("aria-label","Ir al paso "+(k+1)+": "+STEP_TITLES[k]);
-    d.addEventListener("click",function(){ goStep(k+1) });
+    d.className="step-dot"+(n===step?" on":"");
+    d.type="button";
+    d.setAttribute("aria-label","Ir al paso: "+STEP_TITLES[n-1]);
+    d.addEventListener("click",function(){ goStep(n) });
     dotsBox.appendChild(d);
-  })(sd);
+  });
 }
 function goStep(n){
   step=Math.max(1,Math.min(NSTEPS,n));
+  if(!pasoActivo(step)) step=siguientePaso(step,1);
   for(var g=0;g<groups.length;g++){
     groups[g].classList.toggle("on", +groups[g].getAttribute("data-step")===step);
   }
-  for(var d=0;d<dotsBox.children.length;d++) dotsBox.children[d].classList.toggle("on", d===step-1);
-  $("stepTitle").textContent="Paso "+step+" de "+NSTEPS+" · "+STEP_TITLES[step-1];
-  $("stepFill").style.width=(100*step/NSTEPS).toFixed(1)+"%";
+  pintaPuntos();
+  var act=pasosActivos(), pos=act.indexOf(step)+1;
+  $("stepTitle").textContent="Paso "+pos+" de "+act.length+" · "+STEP_TITLES[step-1];
+  $("stepFill").style.width=(100*pos/act.length).toFixed(1)+"%";
   $("stepPrev").disabled=(step===1);
   // en el último paso el botón cierra el flujo en vez de quedarse muerto
   $("stepNext").disabled=false;
   $("stepNext").textContent = (step===NSTEPS) ? "Ver mi resultado" : "Siguiente";
+  // en los pasos que se resuelven con un toque, el botón estorba
+  var soloTocar = (step<=2 || (step>=5 && step<=10));
+  $("stepNext").hidden = soloTocar;
+  $("stepHint").hidden = !soloTocar;
 }
-$("stepPrev").addEventListener("click",function(){ goStep(step-1) });
+$("stepPrev").addEventListener("click",function(){ goStep(siguientePaso(step,-1)) });
 /* el análisis completo sólo aparece cuando lo pides: en el celular
    mientras filtras únicamente se ve el número y el paso en turno */
 var revelacionManual=false;
@@ -1287,7 +1471,7 @@ function alternarAnalisis(){
 $("verMas").addEventListener("click",alternarAnalisis);
 
 $("stepNext").addEventListener("click",function(){
-  if(step<NSTEPS){ goStep(step+1); return }
+  if(step<NSTEPS){ goStep(siguientePaso(step,1)); return }
   // terminaste los pasos: aquí sí se abre todo
   revelar();
   setTimeout(function(){
@@ -1346,6 +1530,16 @@ function registrarCambio(nuevo){
     }
     valorAsentado=nuevo;
   },420);
+}
+
+/* ¿cuál requisito dejó el conteo en cero? La cascada ya lo sabe. */
+function culpable(rows,baseAntes){
+  var prev=baseAntes;
+  for(var i=0;i<rows.length;i++){
+    if(rows[i].after<1 && prev>=1) return {name:rows[i].name, sub:rows[i].sub, antes:prev};
+    prev=rows[i].after;
+  }
+  return null;
 }
 
 /* ================= veredicto y escala humana ================= */
@@ -1624,9 +1818,12 @@ function ecoStory(S){
 /* ================= render principal ================= */
 function update(){
   var st=readState();
-  paintEdad();
+  paintEdad(); syncEdoUI(); sincronizarOpciones();
   $("v-edad").textContent=st.a1+" – "+st.a2+" años";
   $("v-est").textContent=(st.h/100).toFixed(2)+" m";
+  $("estNota").textContent = st.h<=140
+    ? "Sin mínimo de estatura."
+    : "El promedio de "+SEX[COMBOS[combo].tgt].lbl+" adultos en México es "+SEX[COMBOS[combo].tgt].natHeight.toFixed(0)+" cm.";
   $("v-ing").textContent=st.inc===0?"sin mínimo":money(st.inc);
   $("v-tono").textContent=st.tones.filter(Boolean).length+" / 11";
 
@@ -1671,6 +1868,12 @@ function update(){
   $("verdictLine").textContent=vd[0];
   $("verdictCmp").textContent=vd[1];
   $("verdict").hidden=false;
+  // en cero, decir cuál requisito lo mató y qué pasa si lo sueltas
+  var culp = people<1 ? culpable(res.rows,libreBase) : null;
+  if(culp){
+    $("culpable").innerHTML="Lo dejó en cero: <b>"+culp.name+"</b> ("+culp.sub+"). Sin ese requisito quedaban <b>"+fmt(culp.antes)+"</b>.";
+    $("culpable").hidden=false;
+  } else $("culpable").hidden=true;
 
   // barra fija
   $("sbNum").textContent=fmt(people);
@@ -1886,7 +2089,7 @@ function clampEdad(moved){
 }
 el.edadMin.addEventListener("input",function(){ clampEdad("min"); queue() });
 el.edadMax.addEventListener("input",function(){ clampEdad("max"); queue() });
-["est","ing"].forEach(function(id){ el[id].addEventListener("input",queue) });
+el.est.addEventListener("input",queue);
 ["edo","edu","trab","looks"].forEach(function(id){ el[id].addEventListener("change",update) });
 ["auto","casa","solo"].forEach(function(id){ el[id].addEventListener("change",update) });
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(){ setTimeout(update,60) });
