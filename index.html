@@ -795,6 +795,15 @@ h3{
 
       <div class="stepgroup" data-step="11">
       <div class="field">
+        <div class="label"><span>Complexión</span></div>
+        <div class="opts opts-1" id="optCuerpo"></div>
+        <input type="hidden" id="cuerpo" value="0">
+        <p class="fine">El IMC lo mide la ENSANUT: en México cerca de 3 de cada 4 adultos tienen sobrepeso u obesidad. "Con músculo" no lo mide nadie — se aproxima con quien hace ejercicio y no está en obesidad.</p>
+      </div>
+      </div>
+
+      <div class="stepgroup" data-step="12">
+      <div class="field">
         <div class="label"><span>Tono de piel</span><span class="val" id="v-tono">11 / 11</span></div>
         <div class="opts opts-4" id="optTono"></div>
         <div class="tones" id="tones"></div>
@@ -923,6 +932,7 @@ h3{
         <li><b>Vivienda propia</b> — la del hogar que encabeza; no cuenta la casa de sus papás. Por definición implica vivir por su cuenta, así que el modelo nunca genera dueños de casa viviendo con sus padres: si marcas los dos, el segundo ya no recorta nada.</li>
         <li><b>Tono de piel</b> — escala cromática de 11 tonos, el mismo tipo de instrumento que el INEGI usa en sus módulos de movilidad social y discriminación. Está aquí porque es un dato que el INEGI levanta y porque el resultado es justamente el punto: el filtro que la gente casi nunca dice en voz alta también tiene un número.</li>
         <li><b>Claros y morenos por estado</b> — los atajos "Claros" (tonos 1 a 4), "Medios" (5 a 7) y "Morenos" (8 a 11) agrupan la misma escala. La proporción de tonos claros no es igual en todo el país: en el modelo va de alrededor del 42% en Baja California y 40% en Nuevo León a cerca del 15% en Chiapas y Oaxaca, contra un 28% nacional. Ese gradiente norte-sur está tomado de las diferencias regionales que reportan los módulos del INEGI, no medido entidad por entidad, así que sirve para comparar estados entre sí y no como cifra oficial de cada uno.</li>
+        <li><b>Complexión</b> — sale del índice de masa corporal que mide la ENSANUT, donde cerca de 3 de cada 4 adultos en México tienen sobrepeso u obesidad; en el modelo son 75% de los hombres y 78% de las mujeres. La obesidad tampoco es pareja: va de alrededor del 42% en Campeche al 29% en Chiapas. <b>"Con músculo" no es un dato</b>: el IMC no distingue músculo de grasa y nadie lo mide a nivel nacional, así que se aproxima con quien reporta hacer ejercicio y no está en obesidad.</li>
         <li><b>Atractivo físico</b> — a diferencia de todo lo demás, esto <em>no</em> es un dato del INEGI: nadie lo mide. Se modela como un rasgo al azar, con forma de campana, igual de repartido en todo el país y sin relación con el ingreso o la escolaridad de cada quien. Los cinco niveles del selector son, literalmente, los quintiles de esa campana: "guapo" es el 20% más alto, "agradable" el 40% más alto, y así.</li>
       </ul>
 
@@ -1092,6 +1102,23 @@ var VENUES={
  "Yucatán":            [[700,"el Teatro Peón Contreras"],[16000,"el Parque Kukulcán"],[15000,"el Estadio Carlos Iturralde"]],
  "Zacatecas":          [[800,"el Teatro Calderón"],[6000,"la Plaza de Toros de Zacatecas"],[20000,"el Estadio Francisco Villa"]]
 };
+/* ================= obesidad por entidad (ENSANUT) =================
+   Proporción aproximada de adultos con obesidad; el sur del país tiene
+   menos y la península y el norte más. Se usa sólo para desplazar el IMC. */
+var OBESIDAD={
+ "Aguascalientes":.36,"Baja California":.37,"Baja California Sur":.38,"Campeche":.42,
+ "Chiapas":.29,"Chihuahua":.36,"Ciudad de México":.34,"Coahuila":.38,"Colima":.38,
+ "Durango":.36,"Estado de México":.35,"Guanajuato":.36,"Guerrero":.32,"Hidalgo":.35,
+ "Jalisco":.36,"Michoacán":.33,"Morelos":.35,"Nayarit":.37,"Nuevo León":.37,
+ "Oaxaca":.31,"Puebla":.33,"Querétaro":.35,"Quintana Roo":.39,"San Luis Potosí":.36,
+ "Sinaloa":.37,"Sonora":.39,"Tabasco":.41,"Tamaulipas":.38,"Tlaxcala":.34,
+ "Veracruz":.36,"Yucatán":.40,"Zacatecas":.35
+};
+STATES.forEach(function(S){ S.obes=OBESIDAD[S.n]!==undefined?OBESIDAD[S.n]:.36 });
+BAR.obes=(function(){var a=0;for(var j=0;j<NS;j++)a+=STATES[j].obes*STATES[j].men;return a/TOTAL})();
+STATES.forEach(function(S){ S.dImc=(S.obes-BAR.obes)*0.9 });   // desplazamiento del IMC en escala log
+rankBy("obes",false);
+
 STATES.forEach(function(S){
   var v=(VENUES[S.n]||VEN_NAC).slice();
   v.sort(function(a,b){return a[0]-b[0]});
@@ -1115,6 +1142,14 @@ var FEMALE_RATIO=1.061;   // mujeres por cada hombre de 18 a 70, proporción nac
 /* atractivo físico: rasgo latente ~N(0,1), independiente de todo lo demás.
    Los cortes son los quintiles teóricos de una normal estándar. */
 var LOOKS_CUT=[-Infinity,-0.8416,-0.2533,0.2533,0.8416];
+/* complexión: IMC de la ENSANUT; el músculo no es medible, se aproxima */
+var CUERPO_LBL=["cualquiera","delgado o normal (IMC menor a 25)","sin obesidad (IMC menor a 30)","con músculo: hace ejercicio y sin obesidad"];
+function cumpleCuerpo(i,modo){
+  if(modo===1) return pImc[i]<25;
+  if(modo===2) return pImc[i]<30;
+  if(modo===3) return (pFlags[i]&16)!==0 && pImc[i]>=22 && pImc[i]<30;
+  return true;
+}
 var LOOKS_LBL=["cualquiera","medio feo o mejor","normal o mejor","agradable o mejor","top 20%"];
 
 var TONE_W=[.03,.05,.08,.11,.14,.15,.14,.12,.09,.06,.03], TONE_CUM=cumsum(TONE_W);
@@ -1137,7 +1172,8 @@ var SEX=[
    formal:[.28,.38,.52,.70],
    medIng:[6200,7600,9200,15500],
    autoInt:-1.10, casaInt:-0.30, soloInt:-2.20,
-   ori:[.955,.027,.018]
+   ori:[.955,.027,.018],
+   imcMu:3.3490, imcSd:0.160, pEjer:.48
  },
  { lbl:"mujeres", one:"mujer", art:"una", them:"ellas",
    total:TOTAL*FEMALE_RATIO,
@@ -1150,7 +1186,8 @@ var SEX=[
    formal:[.26,.38,.55,.72],
    medIng:[5300,6400,7900,13200],
    autoInt:-1.75, casaInt:-0.40, soloInt:-2.05,
-   ori:[.951,.040,.009]
+   ori:[.951,.040,.009],
+   imcMu:3.3790, imcSd:0.1885, pEjer:.37
  }
 ];
 SEX.forEach(function(S){
@@ -1199,7 +1236,7 @@ for(sx=0;sx<2;sx++){
   }
 }
 
-var pAge,pH,pInc,pEdu,pTone,pJob,pFlags,pSt,pLooks,pSex,pOri,idxBuf;
+var pAge,pH,pInc,pEdu,pTone,pJob,pFlags,pSt,pLooks,pSex,pOri,pImc,idxBuf;
 
 /* qué tan claro es cada estado, según los tonos que genera el modelo */
 function calculaTonos(){
@@ -1218,7 +1255,7 @@ function build(){
   pAge=new Float32Array(N); pH=new Float32Array(N); pInc=new Float32Array(N);
   pEdu=new Uint8Array(N); pTone=new Uint8Array(N); pJob=new Uint8Array(N);
   pFlags=new Uint8Array(N); pSt=new Uint8Array(N); pLooks=new Float32Array(N);
-  pSex=new Uint8Array(N); pOri=new Uint8Array(N); idxBuf=new Int32Array(N);
+  pSex=new Uint8Array(N); pOri=new Uint8Array(N); pImc=new Float32Array(N); idxBuf=new Int32Array(N);
   var k=0;
   for(var sex=0;sex<2;sex++){
     var P=SEX[sex];
@@ -1254,8 +1291,15 @@ function build(){
         if(rnd()<P.availF(age)+S.dSol) f|=8;
 
         pAge[k]=age; pH[k]=h; pInc[k]=inc; pEdu[k]=edu; pTone[k]=tone; pJob[k]=job;
-        pFlags[k]=f; pSt[k]=si; pSex[k]=sex;
+        pSt[k]=si; pSex[k]=sex;
         pOri[k]=pickCum(P.oriCum,rnd());               // orientación sexual (ENDISEG 2021)
+        // IMC: lognormal calibrada a ENSANUT, sube con la edad y con la
+        // obesidad del estado. El ejercicio (MOPRADEF) baja el IMC.
+        var ejer = rnd() < P.pEjer + 0.05*z - 0.004*(age-35);
+        var imcAge = age<25 ? -0.055 : age<35 ? -0.018 : age<50 ? 0.012 : 0.022;
+        pImc[k]=Math.exp(P.imcMu + S.dImc + imcAge + (ejer?-0.045:0.015) + P.imcSd*gauss());
+        if(ejer) f|=16;
+        pFlags[k]=f;
         pLooks[k]=gauss();                             // atractivo físico
         k++;
       }
@@ -1269,7 +1313,7 @@ var EDU_LBL=["Cualquiera","Secundaria terminada","Preparatoria o técnico","Lice
 var TRAB_LBL=["Cualquiera","Que trabaje","Empleo formal","Profesionista con empleo formal"];
 var $=function(id){return document.getElementById(id)};
 var el={edo:$("edo"),edadMin:$("edadMin"),edadMax:$("edadMax"),est:$("est"),ing:$("ing"),edu:$("edu"),
-        trab:$("trab"),auto:$("auto"),casa:$("casa"),solo:$("solo"),looks:$("looks")};
+        trab:$("trab"),auto:$("auto"),casa:$("casa"),solo:$("solo"),looks:$("looks"),cuerpo:$("cuerpo")};
 var tonesOn=[1,1,1,1,1,1,1,1,1,1,1].map(Boolean);
 
 STATES.forEach(function(S,k){
@@ -1381,6 +1425,10 @@ var GRUPOS_TONO=[
   });
 })();
 
+sincronizadores.push(grupoOpciones("optCuerpo", el.cuerpo, [
+  {v:0,txt:"Como sea"},{v:1,txt:"Delgado o normal"},
+  {v:2,txt:"Sin obesidad"},{v:3,txt:"Con músculo"}
+], 11));
 sincronizadores.push(grupoSiNo("optAuto", el.auto, 8));
 sincronizadores.push(grupoSiNo("optSolo", el.solo, 9, function(v){
   // si no encabeza su hogar, la vivienda propia no aplica
@@ -1426,13 +1474,13 @@ var COMBOS=[
   {src:1,tgt:1, lbl:"Mujer",  sub:"busca mujer"},
   {src:0,tgt:0, lbl:"Hombre", sub:"busca hombre"}
 ];
-var combo=0;
+var combo=-1;   // nadie ha elegido todavía
 var whoBox=$("whowho");
 COMBOS.forEach(function(C,k){
   var b=document.createElement("button");
   b.className="who"; b.type="button";
   b.innerHTML=C.lbl+"<small>"+C.sub+"</small>";
-  b.setAttribute("aria-pressed", k===0?"true":"false");
+  b.setAttribute("aria-pressed","false");
   b.addEventListener("click",function(){ setCombo(k); update(); if(step===1) goStep(2) });
   whoBox.appendChild(b);
 });
@@ -1443,6 +1491,10 @@ function setCombo(k){
 }
 /* todo el texto de la interfaz cambia con el sexo buscado */
 function syncGenderLabels(){
+  if(combo<0){
+    $("oriNote").textContent="Elige una opción para empezar: de ahí depende a quién cuenta el modelo y cuánta gente descuenta por orientación sexual.";
+    return;
+  }
   var C=COMBOS[combo], T=SEX[C.tgt], S=SEX[C.src];
   $("looks").options[4].textContent = C.tgt===0 ? "Guapo — solo el top 20%" : "Guapa — solo el top 20%";
   $("looks").options[0].textContent = C.tgt===0 ? "Muy feo — no importa" : "Muy fea — no importa";
@@ -1454,7 +1506,7 @@ function syncGenderLabels(){
 }
 
 /* ================= navegación por pasos ================= */
-var STEP_TITLES=["Quién busca a quién","Dónde buscas","Edad","Estatura","Ingreso","Escolaridad","Trabajo","Auto","Vivienda","Casa propia","Físico"];
+var STEP_TITLES=["Quién busca a quién","Dónde buscas","Edad","Estatura","Ingreso","Escolaridad","Trabajo","Auto","Vivienda","Casa propia","Complexión","Físico"];
 var NSTEPS=STEP_TITLES.length, step=1, showAll=false;
 /* el paso de casa propia sólo existe si vive por su cuenta */
 function pasoActivo(n){ return n===10 ? el.solo.checked : true }
@@ -1479,6 +1531,7 @@ function pintaPuntos(){
   });
 }
 function goStep(n){
+  if(combo<0) n=1;              // sin elección no hay a dónde avanzar
   step=Math.max(1,Math.min(NSTEPS,n));
   if(!pasoActivo(step)) step=siguientePaso(step,1);
   for(var g=0;g<groups.length;g++){
@@ -1636,13 +1689,13 @@ function verdictFor(n,scopeName,si){
 function stateToHash(st){
   var flags=(st.auto?1:0)|(st.casa?2:0)|(st.solo?4:0);
   var bits=0; for(var k=0;k<11;k++) if(st.tones[k]) bits|=(1<<k);
-  return "#3."+[st.edo,st.a1,st.a2,st.h,+el.ing.value,st.edu,st.trab,flags,st.looks,bits,combo].join(".");
+  return "#4."+[st.edo,st.a1,st.a2,st.h,+el.ing.value,st.edu,st.trab,flags,st.looks,bits,combo,st.cuerpo].join(".");
 }
 function applyHash(){
   var h=(location.hash||"").replace(/^#/,"");
-  if(h.indexOf("3.")!==0) return false;
+  if(h.indexOf("4.")!==0) return false;
   var p=h.split(".");
-  if(p.length<12) return false;
+  if(p.length<13) return false;
   var cb=parseInt(p[11],10);
   setCombo((isNaN(cb)||cb<0||cb>=COMBOS.length)?0:cb);
   var num=function(i,lo,hi,dflt){ var v=parseInt(p[i],10); return (isNaN(v)||v<lo||v>hi)?dflt:v };
@@ -1651,7 +1704,7 @@ function applyHash(){
   var flags=num(8,0,7,0), bits=num(10,0,2047,2047);
   el.edo.value=edo; el.edadMin.value=a1; el.edadMax.value=a2;
   el.est.value=num(4,150,200,150); el.ing.value=num(5,0,ING_STEPS.length-1,0);
-  el.edu.value=num(6,0,3,0); el.trab.value=num(7,0,3,0); el.looks.value=num(9,0,4,0);
+  el.edu.value=num(6,0,3,0); el.trab.value=num(7,0,3,0); el.looks.value=num(9,0,4,0); el.cuerpo.value=num(12,0,3,0);
   el.auto.checked=!!(flags&1); el.casa.checked=!!(flags&2);
   el.solo.checked=!!(flags&4);
   for(var k=0;k<11;k++){
@@ -1698,7 +1751,7 @@ function readState(){
   if(a1>a2){var tmp=a1;a1=a2;a2=tmp}
   return {edo:+el.edo.value, a1:a1, a2:a2, h:+el.est.value, inc:ING_STEPS[+el.ing.value],
           edu:+el.edu.value, trab:+el.trab.value, auto:el.auto.checked, casa:el.casa.checked,
-          solo:el.solo.checked, looks:+el.looks.value, tones:tonesOn.slice()};
+          solo:el.solo.checked, looks:+el.looks.value, cuerpo:+el.cuerpo.value, tones:tonesOn.slice()};
 }
 function buildFilters(st){
   var all=st.tones.every(function(x){return x});
@@ -1713,6 +1766,8 @@ function buildFilters(st){
     {on:st.casa, name:"Vivienda propia", sub:"a su nombre o del hogar que encabeza", f:function(i){return (pFlags[i]&2)!==0}},
     {on:st.solo, name:"Vive por su cuenta", sub:"no en casa de sus papás", f:function(i){return (pFlags[i]&4)!==0}},
     {on:!all, name:"Tono de piel", sub:st.tones.filter(Boolean).length+" de 11 tonos de la escala", f:function(i){return st.tones[pTone[i]]}},
+    {on:st.cuerpo>0, name:"Complexión", sub:CUERPO_LBL[st.cuerpo],
+      f:function(i){return cumpleCuerpo(i,st.cuerpo)}},
     {on:st.looks>0, name:"Atractivo físico", sub:LOOKS_LBL[st.looks]+" · rasgo simulado, no medido por el INEGI",
       f:function(i){var c=LOOKS_CUT[st.looks]; return pLooks[i]>=c}}
   ].filter(function(f){return f.on});
@@ -1829,6 +1884,7 @@ function ecoCard(si){
       ecoCell("Escolaridad promedio",BAR.esc.toFixed(1)+" años",null,BAR.esc/12,"población de 15 años y más")+
       ecoCell("Viviendas con auto",(BAR.auto*100).toFixed(0)+"%",null,BAR.auto,"promedio del país")+
       ecoCell("Tonos claros de piel",((BAR.claro||0)*100).toFixed(0)+"%",null,BAR.claro||0,"tonos 1 a 4 de la escala de 11")+
+      ecoCell("Obesidad en adultos",(BAR.obes*100).toFixed(0)+"%",null,BAR.obes,"promedio nacional, ENSANUT")+
       ecoCell("Estatura promedio",natH.toFixed(1)+" cm",null,(BAR.alt-ALT_MIN)/(ALT_MAX-ALT_MIN),(C.tgt===0?"hombres adultos":"mujeres adultas")+", promedio nacional")+
       '</div>'+
       '<div class="eco-foot">Elige un estado para ver qué tanto se aleja de esta media — y cómo eso mueve tu número.</div>';
@@ -1847,6 +1903,7 @@ function ecoCard(si){
     ecoCell("Escolaridad promedio",S.esc.toFixed(1)+" años",S.r_esc,S.esc/12,"nacional "+BAR.esc.toFixed(1)+" años")+
     ecoCell("Viviendas con auto",(S.auto*100).toFixed(0)+"%",S.r_auto,S.auto,"nacional "+(BAR.auto*100).toFixed(0)+"%")+
     ecoCell("Tonos claros de piel",((S.claro||0)*100).toFixed(0)+"%",S.r_claro,S.claro||0,"nacional "+((BAR.claro||0)*100).toFixed(0)+"% · tonos 1 a 4")+
+    ecoCell("Obesidad en adultos",(S.obes*100).toFixed(0)+"%",S.r_obes,S.obes,"nacional "+(BAR.obes*100).toFixed(0)+"%")+
     ecoCell("Estatura promedio",sHeight.toFixed(1)+" cm",S.r_alt,(S.alt-ALT_MIN)/(ALT_MAX-ALT_MIN),(sHeight>=natH?"+":"−")+Math.abs(sHeight-natH).toFixed(1)+" cm vs. el promedio nacional")+
     '</div>'+
     '<div class="eco-foot">'+ecoStory(S)+'</div>';
@@ -1870,9 +1927,20 @@ function ecoStory(S){
 }
 
 /* ================= render principal ================= */
+function esperandoEleccion(){
+  $("kicker").textContent="Para empezar";
+  var b=$("big"); b.classList.add("loading"); b.textContent="Elige quién busca a quién";
+  $("bigsub").textContent="El número aparece en cuanto lo digas: no tiene sentido contar sin saber a quién.";
+  $("odds").textContent="—"; $("pct").textContent="—";
+  $("verdict").hidden=true; $("delta").hidden=true; $("moveSection").hidden=true;
+  $("dotcap").textContent="";
+  ctx.clearRect(0,0,cv.width,cv.height);
+  $("stepNext").disabled=true;
+}
 function update(){
   var st=readState();
   paintEdad(); syncEdoUI(); sincronizarOpciones();
+  if(combo<0){ esperandoEleccion(); return }
   $("v-edad").textContent=st.a1+" – "+st.a2+" años";
   $("v-est").textContent=(st.h/100).toFixed(2)+" m";
   $("estNota").textContent = st.h<=140
@@ -2092,7 +2160,7 @@ function renderFunnel(rows,st,scopeName,scopeTotal,oriBase,libreBase){
 }
 
 /* ================= presets ================= */
-var RESET_STATE={edo:-1,a1:18,a2:70,h:140,ing:0,edu:0,trab:0,auto:0,casa:0,solo:0,looks:0};
+var RESET_STATE={edo:-1,a1:18,a2:70,h:140,ing:0,edu:0,trab:0,auto:0,casa:0,solo:0,looks:0,cuerpo:0};
 var PRESETS=[
   {n:"🦄 El unicornio de TikTok", s:{edo:-1,a1:28,a2:38,h:180,ing:12,edu:3,trab:2,auto:1,casa:1,solo:1,looks:4}},
   {n:"1.80 y que respire",        s:{edo:-1,a1:25,a2:40,h:180,ing:0, edu:0,trab:0,auto:0,casa:0,solo:0,looks:0}},
@@ -2110,15 +2178,16 @@ PRESETS.forEach(function(p){
   pbox.appendChild(b);
 });
 function applyState(v){
+  if(combo<0) setCombo(0);      // un preset ya implica una elección
   el.edo.value=v.edo; el.edadMin.value=v.a1; el.edadMax.value=v.a2; el.est.value=v.h; el.ing.value=v.ing;
-  el.edu.value=v.edu; el.trab.value=v.trab; el.looks.value=v.looks||0;
+  el.edu.value=v.edu; el.trab.value=v.trab; el.looks.value=v.looks||0; el.cuerpo.value=v.cuerpo||0;
   el.auto.checked=!!v.auto; el.casa.checked=!!v.casa; el.solo.checked=!!v.solo;
   for(var k=0;k<11;k++){ tonesOn[k]=true; tonesBox.children[k].setAttribute("aria-pressed","true") }
   update();
 }
 function empezarDeNuevo(){
   try{ history.replaceState(null,"",location.pathname+location.search) }catch(e){}
-  setCombo(0);
+  setCombo(-1);
   applyState(RESET_STATE);
   valorAsentado=null; $("delta").hidden=true;   // el contador de cambios arranca limpio
   revelacionManual=false;
@@ -2169,6 +2238,7 @@ function activeFilterList(st){
   if(st.auto) out.push("Auto propio");
   if(st.casa) out.push("Vivienda propia");
   if(st.solo) out.push("Vive por su cuenta");
+  if(st.cuerpo>0) out.push("Complexión: "+["","delgado o normal","sin obesidad","con músculo"][st.cuerpo]);
   if(st.looks>0) out.push("Atractivo: "+LOOKS_LBL[st.looks]);
   if(!st.tones.every(function(x){return x})) out.push(st.tones.filter(Boolean).length+"/11 tonos de piel");
   return out;
@@ -2268,6 +2338,7 @@ function buildInfographic(){
   return cv;
 }
 function shareImage(){
+  if(combo<0){ toast("Primero elige quién busca a quién"); return }
   var go=function(){
     var cv;
     try{ cv=buildInfographic() }catch(e){ toast("No se pudo generar la imagen"); return }
@@ -2314,9 +2385,9 @@ function shareImage(){
 }
 
 /* ================= compartir e interacción ================= */
-$("shLink").addEventListener("click",function(){ copy(lastShare.url,"¡Liga copiada!") });
+$("shLink").addEventListener("click",function(){ if(combo<0){ toast("Primero elige quién busca a quién"); return } copy(lastShare.url,"¡Liga copiada!") });
 $("sbShare").addEventListener("click",function(){ copy(lastShare.url,"¡Liga copiada!") });
-$("shText").addEventListener("click",function(){ copy(lastShare.txt,"¡Resultado copiado!") });
+$("shText").addEventListener("click",function(){ if(combo<0){ toast("Primero elige quién busca a quién"); return } copy(lastShare.txt,"¡Resultado copiado!") });
 $("shImg").addEventListener("click",shareImage);
 $("shRand").addEventListener("click",function(){
   var r=function(a,b){ return a+Math.floor(Math.random()*(b-a+1)) };
