@@ -326,6 +326,16 @@ select:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
   margin:0; font-size:1.22rem; line-height:1.25; font-weight:700; letter-spacing:-.02em;
   color:var(--accent); text-wrap:balance;
 }
+/* el dato que de verdad aterriza el resultado */
+.compites{
+  margin:0 26px 14px; padding:13px 16px; border-radius:9px;
+  background:var(--teal-soft); border:1px solid color-mix(in srgb, var(--teal) 35%, transparent);
+  font-size:14px; line-height:1.35; color:var(--ink-2);
+}
+.compites b{display:block; font-family:"Archivo",sans-serif; font-size:1.45rem; font-weight:800;
+  letter-spacing:-.025em; color:var(--teal); margin-bottom:2px; font-variant-numeric:tabular-nums}
+@media (max-width:640px){ .compites{margin:0 18px 12px; padding:11px 13px; font-size:13px} }
+
 .culpable{
   margin:9px 0 0; padding-top:9px; border-top:1px solid var(--accent-line);
   font-size:13px; line-height:1.4; color:var(--ink-2);
@@ -604,6 +614,8 @@ h3{
   body:not(.revealed) .odds-num{font-size:.92rem}
   body:not(.revealed) .odds-lbl{font-size:8.5px}
   body:not(.revealed) .verdict{margin:0 14px 10px; padding:8px 11px}
+  body:not(.revealed) .compites{margin:0 14px 10px; padding:9px 12px; font-size:12px}
+  body:not(.revealed) .compites b{font-size:1.2rem}
   body:not(.revealed) .verdict-line{font-size:.95rem; line-height:1.2}
   body:not(.revealed) .verdict-cmp{font-size:.85rem; margin-top:2px}
   body:not(.revealed) .panel-hd{padding:9px 14px}
@@ -838,6 +850,8 @@ h3{
       <p class="culpable" id="culpable" hidden></p>
     </div>
 
+    <div class="compites" id="compites" hidden></div>
+
     <div class="dots">
       <canvas id="cv" width="1000" height="440" role="img" aria-label="Malla de 10,000 puntos donde se resaltan los que cumplen los requisitos"></canvas>
       <div class="dots-cap"><span class="dot-key"></span> <span id="dotcap">—</span></div>
@@ -847,7 +861,7 @@ h3{
       <button class="sh-btn primary" id="shLink" type="button">Copiar liga con mis filtros</button>
       <button class="sh-btn" id="shText" type="button">Copiar resultado</button>
       <button class="sh-btn" id="shImg" type="button">Descargar imagen</button>
-      <button class="sh-btn" id="shRand" type="button">Sorpréndeme</button>
+      <button class="sh-btn" id="shRand" type="button" title="Pone filtros al azar para que veas otro escenario">Probar filtros al azar</button>
       <span class="sh-toast" id="shToast" role="status" aria-live="polite"></span>
     </div>
   </div>
@@ -1895,11 +1909,14 @@ function ecoStory(S){
 
 /* ================= render principal ================= */
 function esperandoEleccion(){
+  // sin esto, el respaldo de la animación anterior repinta el número viejo
+  clearTimeout(animFall); if(animRaf) cancelAnimationFrame(animRaf);
+  animTo=0; animFrom=0;
   $("kicker").textContent="Para empezar";
   var b=$("big"); b.classList.add("loading"); b.textContent="Elige quién busca a quién";
   $("bigsub").textContent="El número aparece en cuanto lo digas: no tiene sentido contar sin saber a quién.";
   $("odds").textContent="—"; $("pct").textContent="—";
-  $("verdict").hidden=true; $("delta").hidden=true; $("moveSection").hidden=true;
+  $("verdict").hidden=true; $("delta").hidden=true; $("moveSection").hidden=true; $("compites").hidden=true;
   $("dotcap").textContent="";
   ctx.clearRect(0,0,cv.width,cv.height);
   $("stepNext").disabled=true;
@@ -1976,12 +1993,31 @@ function update(){
                 (share>0?"1 de cada "+Math.round(1/share).toLocaleString("es-MX")+".":"Ninguno.")+
                 " "+vd[0]+"\n"+lastShare.url;
 
+  // cuántos rivales de tu propio género por cada persona que califica
+  var riv=countRivals(C.src,C.tgt,st.edo,st.a1,st.a2);
+  var razon = people>0 ? riv.single/people : null;
+  var cbox=$("compites");
+  if(people<1){ cbox.hidden=true }
+  else{
+    var propio=SEX[C.src].lbl, buscado=(C.tgt===0?"hombre":"mujer");
+    if(razon>=1){
+      var nRiv = razon<10 ? razon.toFixed(1).replace(/\.0$/,"") : Math.round(razon).toLocaleString("es-MX");
+      var palabra = (nRiv==="1") ? (C.src===0?"hombre":"mujer") : propio;
+      cbox.innerHTML="<b>Compites contra "+nRiv+" "+palabra+"</b>"+
+                     "por cada "+buscado+" que cumple todo lo que pediste, en "+scopeName+".";
+    } else {
+      cbox.innerHTML="<b>Hay "+(1/razon<10?(1/razon).toFixed(1):Math.round(1/razon).toLocaleString("es-MX"))+" que cumplen por cada rival</b>"+
+                     "Aquí la oferta te gana: hay más "+SEX[C.tgt].lbl+" que cumplen que "+propio+" buscándo"+(C.tgt===0?"los":"las")+".";
+    }
+    cbox.hidden=false;
+  }
+
   ecoCard(st.edo);
   // el índice "vs. país" siempre se compara contra la media nacional,
   // aunque estés viendo un estado en particular
   renderStates(byState,st.edo,nat.weight/TGT.total,nat.cases);
   renderFunnel(res.rows,st,scopeName,scopeTotal,oriBase,libreBase);
-  renderMarket(st,people,scopeName);
+  renderMarket(st,people,scopeName,riv);
 }
 
 /* rivales: gente de tu mismo sexo, sin pareja, que busca lo mismo que tú */
@@ -1998,9 +2034,8 @@ function countRivals(src,tgt,scope,a1,a2){
   }
   return {single:w, all:tot};
 }
-function renderMarket(st,people,scopeName){
+function renderMarket(st,people,scopeName,riv){
   var C=COMBOS[combo], SRC=SEX[C.src], TGT=SEX[C.tgt];
-  var riv=countRivals(C.src,C.tgt,st.edo,st.a1,st.a2);
   var rivals=riv.single;
   var ratio = people>0 ? rivals/people : null;
 
@@ -2141,11 +2176,10 @@ var pbox=$("presets");
 PRESETS.forEach(function(p){
   var b=document.createElement("button");
   b.className="preset"; b.type="button"; b.textContent=p.n;
-  b.addEventListener("click",function(){ applyState(p.s) });
+  b.addEventListener("click",function(){ if(combo<0) setCombo(0); applyState(p.s) });
   pbox.appendChild(b);
 });
 function applyState(v){
-  if(combo<0) setCombo(0);      // un preset ya implica una elección
   el.edo.value=v.edo; el.edadMin.value=v.a1; el.edadMax.value=v.a2; el.est.value=v.h; el.ing.value=v.ing;
   el.edu.value=v.edu; el.trab.value=v.trab; el.looks.value=v.looks?String(v.looks):""; el.cuerpo.value=v.cuerpo?String(v.cuerpo):"";
   el.auto.value=v.auto?"1":""; el.casa.value=v.casa?"1":""; el.solo.value=v.solo?"1":"";
@@ -2357,12 +2391,13 @@ $("sbShare").addEventListener("click",function(){ copy(lastShare.url,"¡Liga cop
 $("shText").addEventListener("click",function(){ if(combo<0){ toast("Primero elige quién busca a quién"); return } copy(lastShare.txt,"¡Resultado copiado!") });
 $("shImg").addEventListener("click",shareImage);
 $("shRand").addEventListener("click",function(){
+  if(combo<0) setCombo(0);
   var r=function(a,b){ return a+Math.floor(Math.random()*(b-a+1)) };
   var a1=r(20,45), a2=a1+r(3,15);
   applyState({edo:Math.random()<0.35?r(0,NS-1):-1, a1:a1, a2:Math.min(70,a2),
     h:r(160,188), ing:r(0,12), edu:r(0,3), trab:r(0,3),
     auto:r(0,1), casa:r(0,1), solo:r(0,1), looks:r(0,4)});
-  toast("Filtros al azar");
+  toast("Listo: filtros al azar");
 });
 
 /* la barra fija aparece cuando el número se sale de la pantalla */
