@@ -91,7 +91,9 @@ h1 em{font-family:"Newsreader",Georgia,serif; font-style:italic; font-weight:400
 .layout>.panel{grid-column:1; grid-row:1 / span 2; position:sticky; top:20px}
 .layout>main{grid-column:2; grid-row:2; margin-top:30px}
 @media (max-width:900px){
-  .layout{display:flex; flex-direction:column; gap:14px; padding-top:14px}
+  /* sin esto se hereda align-items:start del grid de escritorio y las
+     tarjetas se encogen al contenido en vez de ocupar todo el ancho */
+  .layout{display:flex; flex-direction:column; align-items:stretch; gap:14px; padding-top:14px}
   .layout>.result{order:1} .layout>.panel{order:2; position:static} .layout>main{order:3; margin-top:0}
 }
 
@@ -475,6 +477,24 @@ h3{
 .src{font-family:"IBM Plex Mono",monospace; font-size:12px; line-height:1.7; color:var(--ink-3); list-style:none; padding:0; margin:0}
 .src li{margin-bottom:5px; padding-left:16px; text-indent:-16px}
 
+/* cierre: la salida obvia para volver a empezar */
+.cierre{
+  margin:30px 0 8px; padding:22px; border-radius:var(--r);
+  background:var(--surface); border:1px solid var(--line); text-align:center;
+}
+.cierre-txt{
+  margin:0 0 13px; font-family:"Archivo",sans-serif; font-size:1.05rem;
+  font-weight:600; color:var(--ink); letter-spacing:-.01em;
+}
+.cierre-btn{
+  font:inherit; font-family:"Archivo",sans-serif; font-size:14.5px; font-weight:600;
+  padding:12px 22px; cursor:pointer; width:100%; max-width:340px;
+  background:var(--accent); color:var(--accent-ink);
+  border:1px solid var(--accent); border-radius:999px; transition:filter .12s;
+}
+.cierre-btn:hover{filter:brightness(1.08)}
+.cierre-btn:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
+
 /* ---------- móvil: una sola pantalla, el número y el paso que estás decidiendo ----------
    Modo "filtrando": el número queda fijo arriba y abajo sólo el paso actual.
    Modo "revelado": aparece el análisis completo, y el número se va a la barra fija. */
@@ -519,7 +539,7 @@ h3{
   }
   body:not(.revealed) header{display:none}
   body:not(.revealed) .layout{
-    flex:1; min-height:0; display:flex; flex-direction:column; gap:9px; padding-top:9px;
+    flex:1; min-height:0; display:flex; flex-direction:column; align-items:stretch; gap:9px; padding-top:9px;
   }
   body:not(.revealed) .layout>.result{
     position:static; flex:0 0 auto; margin:0; border-radius:var(--r); border:1px solid var(--line);
@@ -839,6 +859,11 @@ h3{
         <li>Módulo de Movilidad Social Intergeneracional y ENADIS — escala de tono de piel y su relación con escolaridad e ingreso.</li>
         <li>ENDISEG 2021 — orientación sexual e identidad de género de la población.</li>
       </ul>
+      <div class="cierre">
+        <p class="cierre-txt">¿Otra combinación?</p>
+        <button class="cierre-btn" id="reiniciar" type="button">Empezar otra vez desde cero</button>
+      </div>
+
       <p style="font-size:14px; color:var(--ink-3); margin-top:14px">Las cifras estatales están redondeadas y corresponden a las series públicas más recientes de cada fuente; sirven para comparar entidades entre sí, no como dato oficial puntual.</p>
     </div>
   </main>
@@ -1437,7 +1462,7 @@ function buildFilters(st){
   return [
     {on:st.libre, name:"Está sin pareja", sub:"soltero, separado, divorciado o viudo", f:function(i){return (pFlags[i]&8)!==0}},
     {on:!(st.a1===18&&st.a2===70), name:"Edad", sub:"de "+st.a1+" a "+st.a2+" años", f:function(i){return pAge[i]>=st.a1&&pAge[i]<st.a2+1}},
-    {on:st.h>150, name:"Estatura", sub:(st.h/100).toFixed(2)+" m o más", f:function(i){return pH[i]>=st.h}},
+    {on:st.h>140, name:"Estatura", sub:(st.h/100).toFixed(2)+" m o más", f:function(i){return pH[i]>=st.h}},
     {on:st.edu>0, name:"Escolaridad", sub:EDU_LBL[st.edu], f:function(i){return pEdu[i]>=st.edu}},
     {on:st.trab>0, name:"Trabajo", sub:TRAB_LBL[st.trab],
       f:function(i){ if(st.trab===1)return pJob[i]>0; if(st.trab===2)return pJob[i]===2; return pJob[i]===2&&pEdu[i]===3 }},
@@ -1809,13 +1834,13 @@ function renderFunnel(rows,st,scopeName,scopeTotal,oriBase){
 }
 
 /* ================= presets ================= */
-var RESET_STATE={edo:-1,a1:18,a2:70,h:150,ing:0,edu:0,trab:0,auto:0,casa:0,solo:0,libre:0,looks:0};
+var RESET_STATE={edo:-1,a1:18,a2:70,h:140,ing:0,edu:0,trab:0,auto:0,casa:0,solo:0,libre:0,looks:0};
 var PRESETS=[
   {n:"🦄 El unicornio de TikTok", s:{edo:-1,a1:28,a2:38,h:180,ing:12,edu:3,trab:2,auto:1,casa:1,solo:1,libre:1,looks:4}},
   {n:"1.80 y que respire",        s:{edo:-1,a1:25,a2:40,h:180,ing:0, edu:0,trab:0,auto:0,casa:0,solo:0,libre:1,looks:0}},
-  {n:"Solo el 20% más guapo",     s:{edo:-1,a1:18,a2:70,h:150,ing:0, edu:0,trab:0,auto:0,casa:0,solo:0,libre:1,looks:4}},
+  {n:"Solo el 20% más guapo",     s:{edo:-1,a1:18,a2:70,h:140,ing:0, edu:0,trab:0,auto:0,casa:0,solo:0,libre:1,looks:4}},
   {n:"El de la lista de tu tía",  s:{edo:-1,a1:28,a2:40,h:175,ing:10,edu:3,trab:2,auto:1,casa:1,solo:1,libre:1,looks:3}},
-  {n:"Estabilidad, nada más",     s:{edo:-1,a1:28,a2:45,h:150,ing:5, edu:0,trab:2,auto:0,casa:0,solo:1,libre:1,looks:0}},
+  {n:"Estabilidad, nada más",     s:{edo:-1,a1:28,a2:45,h:140,ing:5, edu:0,trab:2,auto:0,casa:0,solo:1,libre:1,looks:0}},
   {n:"Realista y feliz",          s:{edo:-1,a1:27,a2:42,h:165,ing:4, edu:2,trab:1,auto:0,casa:0,solo:1,libre:1,looks:2}},
   {n:"Sin filtros",               s:RESET_STATE}
 ];
@@ -1833,7 +1858,19 @@ function applyState(v){
   for(var k=0;k<11;k++){ tonesOn[k]=true; tonesBox.children[k].setAttribute("aria-pressed","true") }
   update();
 }
-$("reset").addEventListener("click",function(){ applyState(RESET_STATE) });
+function empezarDeNuevo(){
+  setCombo(0);
+  applyState(RESET_STATE);
+  valorAsentado=null; $("delta").hidden=true;   // el contador de cambios arranca limpio
+  revelacionManual=false;
+  document.body.classList.remove("revealed");
+  $("verMas").textContent="Ver el análisis completo";
+  syncRevealed();
+  goStep(1);
+  window.scrollTo({top:0, behavior: reduce?"auto":"smooth"});
+}
+$("reset").addEventListener("click",empezarDeNuevo);
+$("reiniciar").addEventListener("click",empezarDeNuevo);
 
 /* ================= eventos ================= */
 var pending=false;
