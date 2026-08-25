@@ -359,14 +359,18 @@ select:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
   background:var(--teal-soft); border:1px solid color-mix(in srgb, var(--teal) 35%, transparent);
   font-size:14px; line-height:1.35; color:var(--ink-2);
 }
-.compites b{display:block; font-family:"Archivo",sans-serif; font-size:1.45rem; font-weight:800;
-  letter-spacing:-.025em; color:var(--teal); margin-bottom:2px; font-variant-numeric:tabular-nums}
+/* la etiqueta y el número grandes van en la misma línea: la etiqueta
+   no necesita un renglón propio, y así se ahorra alto */
+.compites-top{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin-bottom:2px}
+.compites-desc{margin:0}
+.compites b{font-family:"Archivo",sans-serif; font-size:1.45rem; font-weight:800;
+  letter-spacing:-.025em; color:var(--teal); font-variant-numeric:tabular-nums}
 /* la etiqueta corta de qué tan dura está la competencia */
 .dif-tag{
-  display:inline-block; margin-bottom:6px; padding:3px 10px; border-radius:999px;
+  display:inline-block; padding:3px 10px; border-radius:999px;
   background:var(--surface); border:1px solid color-mix(in srgb, var(--teal) 45%, transparent);
   color:var(--teal); font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:700;
-  letter-spacing:.02em;
+  letter-spacing:.02em; order:-1;
 }
 @media (max-width:640px){ .compites{margin:0 18px 12px; padding:11px 13px; font-size:13px} }
 
@@ -647,23 +651,28 @@ h3{
   body:not(.revealed) .result-top>div:last-child{gap:16px; padding-top:7px}
   body:not(.revealed) .odds-num{font-size:.92rem}
   body:not(.revealed) .odds-lbl{font-size:8.5px}
-  body:not(.revealed) .verdict{margin:0 14px 10px; padding:8px 11px}
-  body:not(.revealed) .compites{margin:0 14px 10px; padding:9px 12px; font-size:12px}
+  body:not(.revealed) .verdict{margin:0 14px 8px; padding:7px 11px}
+  body:not(.revealed) .compites{margin:0 14px 8px; padding:8px 12px; font-size:12px}
   body:not(.revealed) .compites b{font-size:1.2rem}
+  /* la explicación extra del tag de dificultad no cabe mientras filtras */
+  body:not(.revealed) .dif-note{display:none}
   body:not(.revealed) .verdict-line{font-size:.95rem; line-height:1.2}
   body:not(.revealed) .verdict-cmp{font-size:.85rem; margin-top:2px}
   body:not(.revealed) .panel-hd{padding:9px 14px}
   body:not(.revealed) .panel-hd h2{font-size:10px; letter-spacing:.09em}
   body:not(.revealed) .reset{font-size:11px}
   body:not(.revealed) .field{padding:11px 0}
+  body:not(.revealed) .label{margin-bottom:6px}
+  body:not(.revealed) .opts{gap:4px}
+  body:not(.revealed) .opt{padding:8px 10px; font-size:12.5px}
   body:not(.revealed) .fine{font-size:9.5px; margin-top:6px}
   body:not(.revealed) .panel-body{padding:2px 14px 12px}
   body:not(.revealed) .step-nav{padding:9px 14px}
   body:not(.revealed) .nav-btn{padding:7px 13px; font-size:12.5px}
   body:not(.revealed) .chk{font-size:13px; padding:6px 8px}
-  /* "ver todos los filtros" es de escritorio: aquí sólo estorba */
-  body:not(.revealed) .all-toggle:not(.ver-mas){display:none}
-  body:not(.revealed) .ver-mas{padding:9px 14px}
+  /* mientras contestas el cuestionario ningún atajo de "ver análisis"
+     debería robarle espacio vertical al paso en turno */
+  body:not(.revealed) .all-toggle{display:none}
   /* la aclaración no puede desaparecer sólo porque no cabe el encabezado */
   .mini-nota{
     display:block; font-family:"IBM Plex Mono",monospace; font-size:9px; line-height:1.35;
@@ -2089,14 +2098,15 @@ function update(){
     var propio=SEX[C.src].lbl, buscado=(C.tgt===0?"hombre":"mujer");
     var dif=dificultadFor(razon);
     var tagHtml=dif.tag?'<span class="dif-tag">'+dif.tag+'</span>':"";
+    var noteHtml=dif.txt?' <span class="dif-note">'+dif.txt+'</span>':"";
     if(razon>=1){
       var nRiv = razon<10 ? razon.toFixed(1).replace(/\.0$/,"") : Math.round(razon).toLocaleString("es-MX");
       var palabra = (nRiv==="1") ? (C.src===0?"hombre":"mujer") : propio;
-      cbox.innerHTML=tagHtml+"<b>Compites contra "+nRiv+" "+palabra+"</b>"+
-                     "por cada "+buscado+" que cumple todo lo que pediste, en "+scopeName+". "+dif.txt;
+      cbox.innerHTML='<div class="compites-top">'+tagHtml+"<b>Compites contra "+nRiv+" "+palabra+"</b></div>"+
+                     '<p class="compites-desc">por cada '+buscado+" que cumple todo lo que pediste, en "+scopeName+"."+noteHtml+"</p>";
     } else {
-      cbox.innerHTML=tagHtml+"<b>Hay "+(1/razon<10?(1/razon).toFixed(1):Math.round(1/razon).toLocaleString("es-MX"))+" que cumplen por cada rival</b>"+
-                     "Aquí la oferta te gana: hay más "+SEX[C.tgt].lbl+" que cumplen que "+propio+" buscándo"+(C.tgt===0?"los":"las")+". "+dif.txt;
+      cbox.innerHTML='<div class="compites-top">'+tagHtml+"<b>Hay "+(1/razon<10?(1/razon).toFixed(1):Math.round(1/razon).toLocaleString("es-MX"))+" que cumplen por cada rival</b></div>"+
+                     '<p class="compites-desc">Aquí la oferta te gana: hay más '+SEX[C.tgt].lbl+" que cumplen que "+propio+" buscándo"+(C.tgt===0?"los":"las")+"."+noteHtml+"</p>";
     }
     cbox.hidden=false;
   }
